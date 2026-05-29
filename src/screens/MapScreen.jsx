@@ -9,8 +9,7 @@ import CloseLogo from '../components/CloseLogo'
 import AvatarSVG from '../components/AvatarSVG'
 
 // Free dark map — no API key needed
-const MAP_STYLE     = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
-const NEARBY_RADIUS = 100 // metres
+const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
 
 // ─── Haversine distance ───────────────────────────────────────────────────────
 function haversineM(lat1, lng1, lat2, lng2) {
@@ -61,10 +60,8 @@ function LiveMap({ userLoc, nearbyUsers, myProfile, onUserClick, ghostMode, mapI
         style:            MAP_STYLE,
         center:           loc ? [loc.lng, loc.lat] : [77.209, 28.614],
         zoom:             17,
-        attributionControl: false, // we add compact one below
+        attributionControl: false,
       })
-      // Compact attribution — legal requirement, but small
-      map.addControl(new mgl.AttributionControl({ compact: true }), 'bottom-left')
 
       mapRef.current = map
       if (mapInstanceRef) mapInstanceRef.current = map
@@ -206,10 +203,9 @@ function ProfileSheet({ user, onClose, onPing }) {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function MapScreen() {
   const navigate          = useNavigate()
-  const { session, profile } = useApp()
+  const { session, profile, ghostMode, setGhostMode, visibilityRadius } = useApp()
   const mapInstanceRef    = useRef(null)
 
-  const [ghostMode,     setGhostMode]     = useState(false)
   const [selectedUser,  setSelectedUser]  = useState(null)
   const [nearbyUsers,   setNearbyUsers]   = useState([])
 
@@ -226,7 +222,7 @@ export default function MapScreen() {
     if (!myId || !myLoc || !loc || loc.user_id === myId) return
 
     const dist = haversineM(myLoc.lat, myLoc.lng, loc.lat, loc.lng)
-    if (dist > NEARBY_RADIUS) {
+    if (dist > visibilityRadius) {
       setNearbyUsers(prev => prev.filter(u => u.id !== loc.user_id))
       return
     }
@@ -248,7 +244,7 @@ export default function MapScreen() {
       const exists = prev.some(u => u.id === entry.id)
       return exists ? prev.map(u => u.id === entry.id ? entry : u) : [...prev, entry]
     })
-  }, [session])
+  }, [session, visibilityRadius])
 
   useEffect(() => {
     if (!userLoc || !session || didFetch.current) return
