@@ -1,72 +1,76 @@
-// AvatarSVG — illustrated SVG avatar with full-body support
-// Props: config (object), extras (string[]), size (number = width px),
-//        fullBody (bool) — when true renders arms + legs + feet
+// AvatarSVG — illustrated SVG avatar
+// Full-body viewBox: "0 0 48 120"  (face ~33% height, body 67% — matches preview proportions)
+// Bust viewBox:      "0 0 48 64"   (map pins, nearby list)
+// Props: config, extras, size (width px), fullBody (bool)
 
-// ─── Colour palettes ─────────────────────────────────────────────────────────
+// ─── Palettes ────────────────────────────────────────────────────────────────
 export const SKIN_TONES = [
-  '#FDDBB4', '#F5C89A', '#EDAC74', '#D4845A', '#C06E3A',
-  '#A55B28', '#8D4A1E', '#6B3418', '#4A2412', '#2C1208',
+  '#FDDBB4','#F5C89A','#EDAC74','#D4845A','#C06E3A',
+  '#A55B28','#8D4A1E','#6B3418','#4A2412','#2C1208',
 ]
 export const HAIR_COLORS = [
-  '#1A1A1A', '#3D2B1F', '#6B3A2A', '#8B5E3C', '#C19A6B',
-  '#D4A017', '#E8E0C8', '#A32D2D', '#C4547A', '#7B4BC4',
-  '#3A89C4', '#5AAF6B',
+  '#1A1A1A','#3D2B1F','#6B3A2A','#8B5E3C','#C19A6B',
+  '#D4A017','#E8E0C8','#A32D2D','#C4547A','#7B4BC4',
+  '#3A89C4','#5AAF6B',
 ]
 export const TOP_COLORS = [
-  '#185FA5', '#0F6E56', '#BA7517', '#D4537E', '#534AB7',
-  '#A32D2D', '#1A1A2E', '#2D5016', '#7B4BC4', '#C47A1F',
-  '#2C7873', '#8B2252',
+  '#185FA5','#0F6E56','#BA7517','#D4537E','#534AB7',
+  '#A32D2D','#1A1A2E','#2D5016','#7B4BC4','#C47A1F',
+  '#2C7873','#8B2252',
 ]
 export const BOTTOM_COLORS = [
-  '#1A1A2E', '#185FA5', '#3C3C3C', '#0F6E56', '#BA7517',
-  '#A32D2D', '#2D5016', '#4A3728', '#534AB7', '#8B2252',
-  '#1C1C1C', '#D4537E',
+  '#1A1A2E','#185FA5','#3C3C3C','#0F6E56','#BA7517',
+  '#A32D2D','#2D5016','#4A3728','#534AB7','#8B2252',
+  '#1C1C1C','#D4537E',
 ]
 export const SHOE_COLORS = [
-  '#1A1A1A', '#4A3728', '#8B7355', '#D2B48C',
-  '#F0F0F0', '#A32D2D', '#185FA5', '#2D5016',
+  '#1A1A1A','#4A3728','#8B7355','#D2B48C',
+  '#F0F0F0','#A32D2D','#185FA5','#2D5016',
 ]
 export const ACCESSORY_COLORS = [
-  '#1A1A1A', '#8B0000', '#1A3A5C', '#2D5016',
-  '#6B3A2A', '#FFD700', '#C0C0C0', '#FF6B6B',
+  '#1A1A1A','#8B0000','#1A3A5C','#2D5016',
+  '#6B3A2A','#FFD700','#C0C0C0','#FF6B6B',
 ]
 
-// ─── Style enums ─────────────────────────────────────────────────────────────
-export const FACE_SHAPES   = ['oval', 'round', 'square', 'heart', 'angular']
+// ─── Enums ───────────────────────────────────────────────────────────────────
+export const FACE_SHAPES   = ['oval','round','square','heart','angular']
 export const HAIR_STYLES   = [
-  'short', 'long', 'curly', 'braids', 'bun',
-  'afro', 'ponytail', 'waves', 'pixie', 'locs',
-  'mohawk', 'bob', 'sideswept', 'spacebuns',
+  'short','long','curly','braids','bun',
+  'afro','ponytail','waves','pixie','locs',
+  'mohawk','bob','sideswept','spacebuns',
 ]
 export const TOP_STYLES    = [
-  'tshirt', 'shirt', 'hoodie', 'jacket', 'sweater',
-  'turtleneck', 'tank', 'kameez', 'shawl', 'suit',
+  'tshirt','shirt','hoodie','jacket','sweater',
+  'turtleneck','tank','kameez','shawl','suit',
 ]
 export const BOTTOM_STYLES = [
-  'jeans', 'shorts', 'joggers', 'skirt', 'longskirt',
-  'saree', 'salwar', 'formal', 'dhoti',
+  'jeans','shorts','joggers','skirt','longskirt',
+  'saree','salwar','formal','dhoti',
 ]
-export const BEARD_STYLES  = ['none', 'stubble', 'mustache', 'goatee', 'full', 'extended']
-export const EXTRAS_OPTIONS = ['Glasses', 'Sunglasses', 'Cap', 'Beanie', 'Earrings', 'Freckles', 'Blush']
+export const BEARD_STYLES  = ['none','stubble','mustache','goatee','full','extended']
+export const EXTRAS_OPTIONS = ['Glasses','Sunglasses','Cap','Beanie','Earrings','Freckles','Blush']
 
 // ─── Defaults ────────────────────────────────────────────────────────────────
 export const AVATAR_DEFAULTS = {
-  skinIndex:           0,
-  faceShapeIndex:      0,
-  hairStyle:           'short',
-  hairColorIndex:      0,
-  topStyle:            'tshirt',
-  topColorIndex:       0,
-  bottomStyle:         'jeans',
-  bottomColorIndex:    0,
-  beardStyle:          'none',
-  shoeColorIndex:      0,
-  accessoryColorIndex: 0,
-  gender:              'neutral',
-  build:               'average',
+  skinIndex:0, faceShapeIndex:0,
+  hairStyle:'short', hairColorIndex:0,
+  topStyle:'tshirt', topColorIndex:0,
+  bottomStyle:'jeans', bottomColorIndex:0,
+  beardStyle:'none', shoeColorIndex:0,
+  accessoryColorIndex:0, gender:'neutral', build:'average',
 }
 
-const BUILD_SCALE = { slim: 0.78, average: 1, athletic: 1.12, plus: 1.3 }
+const BUILD_SCALE = { slim:0.78, average:1, athletic:1.12, plus:1.3 }
+
+// ─── Coordinate landmarks (full-body, viewBox 0 0 48 120) ───────────────────
+// Face:    cy=26 ry=13  → y=13–39   (33% of 120 — preview proportions)
+// Neck:    y=38–46
+// Torso:   y=44–80      (36 units — vs 25 before)
+// Arm:     y=44–82      hand ellipse cy=84
+// LegTop:  y=80
+// Crotch:  y=80–91
+// Ankle:   y=112
+// Shoe:    y=112–120
 
 // ─── Face shapes ─────────────────────────────────────────────────────────────
 const FACE_PATHS = {
@@ -80,121 +84,122 @@ const FACE_PATHS = {
 // ─── Hair ────────────────────────────────────────────────────────────────────
 const HAIR_PATHS = {
   short:     c => <g><ellipse cx="24" cy="19" rx="13" ry="8" fill={c} /><rect x="11" y="18" width="26" height="7" fill={c} /></g>,
-  long:      c => <g><ellipse cx="24" cy="17" rx="13" ry="9" fill={c} /><path d="M11 17 Q8 30 9 52" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /><path d="M37 17 Q40 30 39 52" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /></g>,
+  long:      c => <g><ellipse cx="24" cy="17" rx="13" ry="9" fill={c} /><path d="M11 17 Q8 30 9 58" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /><path d="M37 17 Q40 30 39 58" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /></g>,
   curly:     c => <g><ellipse cx="24" cy="16" rx="14" ry="9" fill={c} /><circle cx="13" cy="19" r="5.5" fill={c} /><circle cx="35" cy="19" r="5.5" fill={c} /><circle cx="18" cy="11" r="5" fill={c} /><circle cx="30" cy="11" r="5" fill={c} /><circle cx="24" cy="8" r="5" fill={c} /><circle cx="11" cy="24" r="4" fill={c} /><circle cx="37" cy="24" r="4" fill={c} /></g>,
-  braids:    c => <g><ellipse cx="24" cy="17" rx="13" ry="8" fill={c} /><path d="M13 18 Q12 30 14 56" stroke={c} strokeWidth="4.5" fill="none" strokeLinecap="round" /><path d="M22 18 Q21 32 22 60" stroke={c} strokeWidth="4.5" fill="none" strokeLinecap="round" /><path d="M31 18 Q32 30 30 56" stroke={c} strokeWidth="4.5" fill="none" strokeLinecap="round" /></g>,
+  braids:    c => <g><ellipse cx="24" cy="17" rx="13" ry="8" fill={c} /><path d="M13 20 Q12 38 14 70" stroke={c} strokeWidth="4.5" fill="none" strokeLinecap="round" /><path d="M22 20 Q21 40 22 75" stroke={c} strokeWidth="4.5" fill="none" strokeLinecap="round" /><path d="M31 20 Q32 38 30 70" stroke={c} strokeWidth="4.5" fill="none" strokeLinecap="round" /></g>,
   bun:       c => <g><ellipse cx="24" cy="21" rx="12" ry="7" fill={c} /><rect x="12" y="20" width="24" height="6" fill={c} /><circle cx="24" cy="9" r="9" fill={c} /></g>,
   afro:      c => <g><circle cx="24" cy="16" r="16" fill={c} /><circle cx="11" cy="22" r="8" fill={c} /><circle cx="37" cy="22" r="8" fill={c} /><circle cx="24" cy="4" r="7" fill={c} /></g>,
   ponytail:  c => <g><ellipse cx="24" cy="20" rx="13" ry="8" fill={c} /><rect x="11" y="19" width="26" height="6" fill={c} /><path d="M24 12 Q29 2 27 -2" stroke={c} strokeWidth="6" fill="none" strokeLinecap="round" /><rect x="21" y="11" width="6" height="4" fill={c} /></g>,
-  waves:     c => <g><ellipse cx="24" cy="17" rx="13" ry="9" fill={c} /><path d="M11 20 Q7 28 11 34 Q7 40 11 46 Q9 52 12 56" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /><path d="M37 20 Q41 28 37 34 Q41 40 37 46 Q39 52 36 56" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /></g>,
+  waves:     c => <g><ellipse cx="24" cy="17" rx="13" ry="9" fill={c} /><path d="M11 20 Q7 30 11 38 Q7 46 11 54 Q9 62 12 68" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /><path d="M37 20 Q41 30 37 38 Q41 46 37 54 Q39 62 36 68" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /></g>,
   pixie:     c => <g><ellipse cx="24" cy="20" rx="12" ry="7" fill={c} /><rect x="12" y="19" width="24" height="6" fill={c} /><path d="M17 19 Q21 11 28 13" stroke={c} strokeWidth="4.5" fill="none" strokeLinecap="round" /></g>,
-  locs:      c => <g><ellipse cx="24" cy="17" rx="13" ry="8" fill={c} />{[13,16,19,22,25,28,31,34].map((x,i)=><rect key={x} x={x} y="20" width="3" height={20+(i%3)*7} rx="1.5" fill={c} />)}</g>,
+  locs:      c => <g><ellipse cx="24" cy="17" rx="13" ry="8" fill={c} />{[13,16,19,22,25,28,31,34].map((x,i)=><rect key={x} x={x} y="20" width="3" height={26+(i%3)*9} rx="1.5" fill={c} />)}</g>,
   mohawk:    c => <g><rect x="20" y="3" width="8" height="22" rx="4" fill={c} /><rect x="11" y="20" width="9" height="4" rx="2" fill={c} /><rect x="28" y="20" width="9" height="4" rx="2" fill={c} /></g>,
-  bob:       c => <g><ellipse cx="24" cy="17" rx="13" ry="9" fill={c} /><path d="M11 17 Q9 28 11 37" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /><path d="M37 17 Q39 28 37 37" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /><path d="M11 37 Q24 42 37 37" stroke={c} strokeWidth="4" fill="none" strokeLinecap="round" /></g>,
-  sideswept: c => <g><ellipse cx="24" cy="18" rx="13" ry="8" fill={c} /><rect x="11" y="18" width="26" height="5" fill={c} /><path d="M37 17 Q40 30 38 52" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /><path d="M22 18 Q32 11 37 8" stroke={c} strokeWidth="5" fill="none" strokeLinecap="round" /></g>,
+  bob:       c => <g><ellipse cx="24" cy="17" rx="13" ry="9" fill={c} /><path d="M11 17 Q9 30 11 42" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /><path d="M37 17 Q39 30 37 42" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /><path d="M11 42 Q24 47 37 42" stroke={c} strokeWidth="4" fill="none" strokeLinecap="round" /></g>,
+  sideswept: c => <g><ellipse cx="24" cy="18" rx="13" ry="8" fill={c} /><rect x="11" y="18" width="26" height="5" fill={c} /><path d="M37 17 Q40 34 38 62" stroke={c} strokeWidth="5.5" fill="none" strokeLinecap="round" /><path d="M22 18 Q32 11 37 8" stroke={c} strokeWidth="5" fill="none" strokeLinecap="round" /></g>,
   spacebuns: c => <g><ellipse cx="24" cy="21" rx="13" ry="7" fill={c} /><rect x="11" y="20" width="26" height="5" fill={c} /><circle cx="13" cy="12" r="7" fill={c} /><circle cx="35" cy="12" r="7" fill={c} /></g>,
 }
 
-// ─── Tops: (color, gender, fullBody) ─────────────────────────────────────────
+// ─── Tops — torso y=44–80, arms y=44–80 ──────────────────────────────────────
 const TOPS = {
 
   tshirt: (c, g, full) => (
     <g>
-      <path d="M12 40 L11 65 Q12 66 24 66 Q36 66 37 65 L36 40 Z" fill={c} />
-      <path d="M19 40 Q24 46 29 40" stroke="rgba(0,0,0,0.12)" strokeWidth="1" fill="rgba(0,0,0,0.05)" />
-      <line x1="24" y1="47" x2="24" y2="64" stroke="rgba(0,0,0,0.05)" strokeWidth="0.9" />
-      <path d="M12 40 L11 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
-      <path d="M36 40 L37 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
+      <path d="M12 44 L11 80 Q12 81 24 81 Q36 81 37 80 L36 44 Z" fill={c} />
+      <path d="M19 44 Q24 51 29 44" stroke="rgba(0,0,0,0.12)" strokeWidth="1" fill="rgba(0,0,0,0.05)" />
+      <line x1="24" y1="52" x2="24" y2="79" stroke="rgba(0,0,0,0.05)" strokeWidth="0.9" />
+      <path d="M12 44 L11 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
+      <path d="M36 44 L37 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
       {full && <>
-        <path d="M8 40 Q5 48 7 53 L15 52 Q15 48 15 40 Z" fill={c} />
-        <path d="M40 40 Q43 48 41 53 L33 52 Q33 48 33 40 Z" fill={c} />
-        <path d="M8 51 Q11 54 15 51" stroke="rgba(0,0,0,0.12)" strokeWidth="0.8" fill="none" />
-        <path d="M33 51 Q37 54 40 51" stroke="rgba(0,0,0,0.12)" strokeWidth="0.8" fill="none" />
+        {/* Short sleeves */}
+        <path d="M8 44 Q5 54 7 62 L15 61 Q15 54 15 44 Z" fill={c} />
+        <path d="M40 44 Q43 54 41 62 L33 61 Q33 54 33 44 Z" fill={c} />
+        <path d="M8 60 Q11 63 15 60"  stroke="rgba(0,0,0,0.12)" strokeWidth="0.8" fill="none" />
+        <path d="M33 60 Q37 63 40 60" stroke="rgba(0,0,0,0.12)" strokeWidth="0.8" fill="none" />
       </>}
     </g>
   ),
 
   shirt: (c, g, full) => (
     <g>
-      <path d="M12 38 L11 65 Q12 66 24 66 Q36 66 37 65 L36 38 Z" fill={c} />
-      <rect x="22.5" y="38" width="3" height="27" fill="rgba(255,255,255,0.1)" />
-      {[44,50,56,62].map(y => <circle key={y} cx="24" cy={y} r="0.8" fill="rgba(255,255,255,0.4)" />)}
-      <path d="M19 38 L16 43 L24 41 L32 43 L29 38" fill={c} stroke="rgba(255,255,255,0.2)" strokeWidth="0.5" />
-      <path d="M12 38 L11 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
-      <path d="M36 38 L37 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
+      <path d="M12 42 L11 80 Q12 81 24 81 Q36 81 37 80 L36 42 Z" fill={c} />
+      <rect x="22.5" y="42" width="3" height="38" fill="rgba(255,255,255,0.1)" />
+      {[50,58,66,74].map(y => <circle key={y} cx="24" cy={y} r="0.9" fill="rgba(255,255,255,0.4)" />)}
+      <path d="M19 42 L16 48 L24 46 L32 48 L29 42" fill={c} stroke="rgba(255,255,255,0.2)" strokeWidth="0.5" />
+      <path d="M12 42 L11 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
+      <path d="M36 42 L37 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
       {full && <>
-        <path d="M8 40 Q5 52 7 63 L15 63 Q15 52 15 40 Z" fill={c} />
-        <path d="M40 40 Q43 52 41 63 L33 63 Q33 52 33 40 Z" fill={c} />
-        <path d="M7 60 Q11 62 15 60" stroke="rgba(255,255,255,0.13)" strokeWidth="1.8" fill="none" />
-        <path d="M33 60 Q37 62 41 60" stroke="rgba(255,255,255,0.13)" strokeWidth="1.8" fill="none" />
+        <path d="M8 44 Q5 58 7 78 L15 78 Q15 58 15 44 Z" fill={c} />
+        <path d="M40 44 Q43 58 41 78 L33 78 Q33 58 33 44 Z" fill={c} />
+        <path d="M7 75 Q11 77 15 75"  stroke="rgba(255,255,255,0.13)" strokeWidth="1.8" fill="none" />
+        <path d="M33 75 Q37 77 41 75" stroke="rgba(255,255,255,0.13)" strokeWidth="1.8" fill="none" />
       </>}
     </g>
   ),
 
   hoodie: (c, g, full) => (
     <g>
-      <path d="M11 38 L10 65 Q11 66 24 66 Q37 66 38 65 L37 38 Z" fill={c} />
-      <path d="M18 38 Q24 48 30 38" stroke="rgba(255,255,255,0.16)" strokeWidth="2.2" fill="rgba(0,0,0,0.1)" />
-      <rect x="19" y="54" width="10" height="7" rx="2" fill="rgba(0,0,0,0.15)" />
-      <path d="M11 38 L10 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
-      <path d="M37 38 L38 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
+      <path d="M11 42 L10 80 Q11 81 24 81 Q37 81 38 80 L37 42 Z" fill={c} />
+      <path d="M18 42 Q24 53 30 42" stroke="rgba(255,255,255,0.16)" strokeWidth="2.2" fill="rgba(0,0,0,0.1)" />
+      <rect x="19" y="64" width="10" height="9" rx="2" fill="rgba(0,0,0,0.15)" />
+      <path d="M11 42 L10 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
+      <path d="M37 42 L38 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
       {full && <>
-        <path d="M8 40 Q5 52 7 63 L15 63 Q15 52 15 40 Z" fill={c} />
-        <path d="M40 40 Q43 52 41 63 L33 63 Q33 52 33 40 Z" fill={c} />
-        <path d="M7 60 Q11 64 15 60" stroke="rgba(0,0,0,0.2)" strokeWidth="3" fill="none" />
-        <path d="M33 60 Q37 64 41 60" stroke="rgba(0,0,0,0.2)" strokeWidth="3" fill="none" />
+        <path d="M8 44 Q5 60 7 78 L15 78 Q15 60 15 44 Z" fill={c} />
+        <path d="M40 44 Q43 60 41 78 L33 78 Q33 60 33 44 Z" fill={c} />
+        <path d="M7 75 Q11 79 15 75"  stroke="rgba(0,0,0,0.2)" strokeWidth="3" fill="none" />
+        <path d="M33 75 Q37 79 41 75" stroke="rgba(0,0,0,0.2)" strokeWidth="3" fill="none" />
       </>}
     </g>
   ),
 
   jacket: (c, g, full) => (
     <g>
-      <path d="M11 38 L10 65 Q11 66 24 66 Q37 66 38 65 L37 38 Z" fill={c} />
-      <path d="M21 38 L24 48 L27 38" fill="rgba(255,255,255,0.2)" />
-      <line x1="11" y1="40" x2="11" y2="64" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-      <line x1="37" y1="40" x2="37" y2="64" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-      <circle cx="24" cy="52" r="1" fill="rgba(255,255,255,0.4)" />
-      <circle cx="24" cy="59" r="1" fill="rgba(255,255,255,0.4)" />
+      <path d="M11 42 L10 80 Q11 81 24 81 Q37 81 38 80 L37 42 Z" fill={c} />
+      <path d="M21 42 L24 54 L27 42" fill="rgba(255,255,255,0.2)" />
+      <line x1="11" y1="44" x2="11" y2="79" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+      <line x1="37" y1="44" x2="37" y2="79" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+      <circle cx="24" cy="63" r="1" fill="rgba(255,255,255,0.4)" />
+      <circle cx="24" cy="72" r="1" fill="rgba(255,255,255,0.4)" />
       {full && <>
-        <path d="M8 40 Q5 52 7 63 L15 63 Q15 52 15 40 Z" fill={c} />
-        <path d="M40 40 Q43 52 41 63 L33 63 Q33 52 33 40 Z" fill={c} />
-        <path d="M7 60 Q11 62 15 60" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" fill="none" />
-        <path d="M33 60 Q37 62 41 60" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" fill="none" />
+        <path d="M8 44 Q5 60 7 78 L15 78 Q15 60 15 44 Z" fill={c} />
+        <path d="M40 44 Q43 60 41 78 L33 78 Q33 60 33 44 Z" fill={c} />
+        <path d="M7 75 Q11 77 15 75"  stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" fill="none" />
+        <path d="M33 75 Q37 77 41 75" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" fill="none" />
       </>}
     </g>
   ),
 
   sweater: (c, g, full) => (
     <g>
-      <path d="M12 38 L11 65 Q12 66 24 66 Q36 66 37 65 L36 38 Z" fill={c} />
-      <rect x="19" y="32" width="10" height="8" rx="4" fill={c} />
-      <rect x="11" y="62" width="26" height="3.5" rx="1.5" fill="rgba(0,0,0,0.13)" />
-      {[12,14,16,18,20,22,24,26,28,30,32,34,36].map(x=>(
-        <line key={x} x1={x} y1="62" x2={x} y2="65.5" stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" />
+      <path d="M12 42 L11 80 Q12 81 24 81 Q36 81 37 80 L36 42 Z" fill={c} />
+      <rect x="19" y="35" width="10" height="9" rx="4.5" fill={c} />
+      <rect x="11" y="77" width="26" height="4" rx="2" fill="rgba(0,0,0,0.13)" />
+      {[13,15,17,19,21,23,25,27,29,31,33,35].map(x=>(
+        <line key={x} x1={x} y1="77" x2={x} y2="81" stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" />
       ))}
-      <path d="M12 38 L11 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
-      <path d="M36 38 L37 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
+      <path d="M12 42 L11 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
+      <path d="M36 42 L37 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
       {full && <>
-        <path d="M8 40 Q5 52 7 63 L15 63 Q15 52 15 40 Z" fill={c} />
-        <path d="M40 40 Q43 52 41 63 L33 63 Q33 52 33 40 Z" fill={c} />
-        <rect x="7" y="59" width="8" height="4.5" rx="2" fill="rgba(0,0,0,0.18)" />
-        <rect x="33" y="59" width="8" height="4.5" rx="2" fill="rgba(0,0,0,0.18)" />
+        <path d="M8 44 Q5 60 7 78 L15 78 Q15 60 15 44 Z" fill={c} />
+        <path d="M40 44 Q43 60 41 78 L33 78 Q33 60 33 44 Z" fill={c} />
+        <rect x="7"  y="73" width="8" height="5.5" rx="2.5" fill="rgba(0,0,0,0.18)" />
+        <rect x="33" y="73" width="8" height="5.5" rx="2.5" fill="rgba(0,0,0,0.18)" />
       </>}
     </g>
   ),
 
   turtleneck: (c, g, full) => (
     <g>
-      <path d="M12 38 L11 65 Q12 66 24 66 Q36 66 37 65 L36 38 Z" fill={c} />
-      <rect x="18" y="29" width="12" height="12" rx="5.5" fill={c} />
-      <rect x="19" y="30" width="10" height="10" rx="4.5" fill="rgba(0,0,0,0.09)" />
-      <path d="M12 38 L11 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
-      <path d="M36 38 L37 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
+      <path d="M12 42 L11 80 Q12 81 24 81 Q36 81 37 80 L36 42 Z" fill={c} />
+      <rect x="18" y="30" width="12" height="14" rx="6" fill={c} />
+      <rect x="19" y="31" width="10" height="12" rx="5" fill="rgba(0,0,0,0.09)" />
+      <path d="M12 42 L11 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
+      <path d="M36 42 L37 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" fill="none" />
       {full && <>
-        <path d="M8 40 Q5 52 7 63 L15 63 Q15 52 15 40 Z" fill={c} />
-        <path d="M40 40 Q43 52 41 63 L33 63 Q33 52 33 40 Z" fill={c} />
-        <rect x="7" y="60" width="8" height="3" rx="1.5" fill="rgba(0,0,0,0.14)" />
-        <rect x="33" y="60" width="8" height="3" rx="1.5" fill="rgba(0,0,0,0.14)" />
+        <path d="M8 44 Q5 60 7 78 L15 78 Q15 60 15 44 Z" fill={c} />
+        <path d="M40 44 Q43 60 41 78 L33 78 Q33 60 33 44 Z" fill={c} />
+        <rect x="7"  y="74" width="8" height="4" rx="2" fill="rgba(0,0,0,0.14)" />
+        <rect x="33" y="74" width="8" height="4" rx="2" fill="rgba(0,0,0,0.14)" />
       </>}
     </g>
   ),
@@ -202,48 +207,49 @@ const TOPS = {
   tank: (c, g, full) => (
     g === 'feminine'
       ? <g>
-          <path d="M15 38 L14 65 Q15 66 24 66 Q33 66 34 65 L33 38 Z" fill={c} />
-          <path d="M15 33 L15 38 L19 38 L20 33 Z" fill={c} />
-          <path d="M33 33 L33 38 L29 38 L28 33 Z" fill={c} />
-          <path d="M15 38 L14 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2" fill="none" />
-          <path d="M33 38 L34 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2" fill="none" />
+          <path d="M15 42 L14 80 Q15 81 24 81 Q33 81 34 80 L33 42 Z" fill={c} />
+          <path d="M15 37 L15 42 L19 42 L20 37 Z" fill={c} />
+          <path d="M33 37 L33 42 L29 42 L28 37 Z" fill={c} />
+          <path d="M15 42 L14 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2" fill="none" />
+          <path d="M33 42 L34 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2" fill="none" />
         </g>
       : <g>
-          <path d="M16 38 L15 65 Q16 66 24 66 Q32 66 33 65 L32 38 Z" fill={c} />
-          <path d="M16 33 L16 38 L20 38 L20 33 Z" fill={c} />
-          <path d="M32 33 L32 38 L28 38 L28 33 Z" fill={c} />
-          <path d="M16 38 L15 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2" fill="none" />
-          <path d="M32 38 L33 65" stroke="rgba(0,0,0,0.08)" strokeWidth="2" fill="none" />
+          <path d="M16 42 L15 80 Q16 81 24 81 Q32 81 33 80 L32 42 Z" fill={c} />
+          <path d="M16 37 L16 42 L20 42 L20 37 Z" fill={c} />
+          <path d="M32 37 L32 42 L28 42 L28 37 Z" fill={c} />
+          <path d="M16 42 L15 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2" fill="none" />
+          <path d="M32 42 L33 80" stroke="rgba(0,0,0,0.08)" strokeWidth="2" fill="none" />
         </g>
   ),
 
   kameez: (c, g, full) => {
-    const trim = 'rgba(218,165,32,0.75)'
+    const trim = 'rgba(218,165,32,0.78)'
     return (
       <g>
-        {/* Long A-line body to mid-calf */}
-        <path d="M15 40 L12 81 Q12 87 24 87 Q36 87 36 81 L33 40 Z" fill={c} />
-        <path d="M15 40 L12 81" stroke="rgba(0,0,0,0.1)" strokeWidth="2" fill="none" />
-        <path d="M33 40 L36 81" stroke="rgba(0,0,0,0.1)" strokeWidth="2" fill="none" />
-        {/* Yoke panel */}
-        <rect x="15" y="40" width="18" height="10" rx="1" fill="rgba(0,0,0,0.15)" />
-        <rect x="15" y="50" width="18" height="1.3" fill={trim} />
+        {/* Long A-line body — reaches below knees, covers legs */}
+        <path d="M15 44 L12 100 Q12 108 24 108 Q36 108 36 100 L33 44 Z" fill={c} />
+        <path d="M15 44 L12 100" stroke="rgba(0,0,0,0.1)" strokeWidth="2" fill="none" />
+        <path d="M33 44 L36 100" stroke="rgba(0,0,0,0.1)" strokeWidth="2" fill="none" />
+        {/* Yoke */}
+        <rect x="15" y="44" width="18" height="13" rx="1" fill="rgba(0,0,0,0.15)" />
+        <rect x="15" y="57" width="18" height="1.5" fill={trim} />
         {[17.5,20.5,23.5,26.5,29.5].map(x=>(
-          <circle key={x} cx={x} cy="45" r="0.65" fill={trim} opacity="0.85" />
+          <circle key={x} cx={x} cy="51" r="0.7" fill={trim} opacity="0.85" />
         ))}
         {/* Mandarin collar */}
-        <rect x="20" y="33" width="8" height="8" rx="2" fill={c} />
-        <rect x="20" y="33" width="8" height="1.8" rx="0.9" fill={trim} />
-        <line x1="24" y1="40" x2="24" y2="51" stroke="rgba(255,255,255,0.22)" strokeWidth="0.9" />
-        {/* Hem border + side slits */}
-        <rect x="12" y="81" width="24" height="3.5" fill={trim} />
-        <line x1="14" y1="77" x2="12" y2="84.5" stroke="rgba(255,255,255,0.14)" strokeWidth="1.2" />
-        <line x1="34" y1="77" x2="36" y2="84.5" stroke="rgba(255,255,255,0.14)" strokeWidth="1.2" />
+        <rect x="20" y="37" width="8" height="9" rx="2" fill={c} />
+        <rect x="20" y="37" width="8" height="2" rx="1" fill={trim} />
+        <line x1="24" y1="44" x2="24" y2="58" stroke="rgba(255,255,255,0.22)" strokeWidth="0.9" />
+        {/* Hem */}
+        <rect x="12" y="100" width="24" height="4" fill={trim} />
+        <line x1="14" y1="96" x2="12" y2="104" stroke="rgba(255,255,255,0.14)" strokeWidth="1.2" />
+        <line x1="34" y1="96" x2="36" y2="104" stroke="rgba(255,255,255,0.14)" strokeWidth="1.2" />
         {full && <>
-          <path d="M7 40 Q5 50 7 57 L14.5 57 Q15 50 15 40 Z" fill={c} />
-          <path d="M41 40 Q43 50 41 57 L33.5 57 Q33 50 33 40 Z" fill={c} />
-          <rect x="7" y="54" width="7.5" height="3" rx="1.5" fill={trim} />
-          <rect x="33.5" y="54" width="7.5" height="3" rx="1.5" fill={trim} />
+          {/* 3/4 sleeves */}
+          <path d="M7 44 Q5 58 7 70 L14.5 70 Q15 58 15 44 Z" fill={c} />
+          <path d="M41 44 Q43 58 41 70 L33.5 70 Q33 58 33 44 Z" fill={c} />
+          <rect x="7"    y="67" width="7.5" height="3.5" rx="1.5" fill={trim} />
+          <rect x="33.5" y="67" width="7.5" height="3.5" rx="1.5" fill={trim} />
         </>}
       </g>
     )
@@ -251,123 +257,102 @@ const TOPS = {
 
   shawl: (c, g, full) => (
     <g>
-      <path d="M13 38 L12 65 Q13 66 24 66 Q35 66 36 65 L35 38 Z" fill={c} />
-      <path d="M11 33 Q16 50 20 65 Q14 66 12 64 Q7 48 10 33 Z" fill={c} opacity="0.52" />
-      <path d="M37 33 Q32 50 28 65 Q34 66 36 64 Q41 48 38 33 Z" fill={c} opacity="0.47" />
+      <path d="M13 42 L12 80 Q13 81 24 81 Q35 81 36 80 L35 42 Z" fill={c} />
+      <path d="M11 37 Q16 58 20 80 Q14 81 12 79 Q7 60 10 37 Z" fill={c} opacity="0.52" />
+      <path d="M37 37 Q32 58 28 80 Q34 81 36 79 Q41 60 38 37 Z" fill={c} opacity="0.47" />
       {full && <>
-        <path d="M8 40 Q5 52 7 63 L15 63 Q15 52 15 40 Z" fill={c} opacity="0.75" />
-        <path d="M40 40 Q43 52 41 63 L33 63 Q33 52 33 40 Z" fill={c} opacity="0.75" />
+        <path d="M8 44 Q5 60 7 78 L15 78 Q15 60 15 44 Z" fill={c} opacity="0.75" />
+        <path d="M40 44 Q43 60 41 78 L33 78 Q33 60 33 44 Z" fill={c} opacity="0.75" />
       </>}
     </g>
   ),
 
   suit: (c, g, full) => (
     <g>
-      <path d="M11 38 L10 65 Q11 66 24 66 Q37 66 38 65 L37 38 Z" fill={c} />
-      <path d="M21 38 L17 50 L24 48 L31 50 L27 38" fill={c} stroke="rgba(255,255,255,0.22)" strokeWidth="0.5" />
-      <path d="M21 38 L24 48 L27 38" fill="rgba(255,255,255,0.42)" />
-      <path d="M23 38 L22.5 48 L24 51 L25.5 48 L25 38 Z" fill="#A32D2D" opacity="0.9" />
-      <rect x="20" y="60" width="3.5" height="2" rx="0.5" fill="rgba(255,255,255,0.28)" />
-      <rect x="25" y="60" width="3.5" height="2" rx="0.5" fill="rgba(255,255,255,0.28)" />
+      <path d="M11 42 L10 80 Q11 81 24 81 Q37 81 38 80 L37 42 Z" fill={c} />
+      <path d="M21 42 L17 56 L24 54 L31 56 L27 42" fill={c} stroke="rgba(255,255,255,0.22)" strokeWidth="0.5" />
+      <path d="M21 42 L24 54 L27 42" fill="rgba(255,255,255,0.42)" />
+      <path d="M23 42 L22.5 54 L24 57 L25.5 54 L25 42 Z" fill="#A32D2D" opacity="0.9" />
+      <rect x="20" y="74" width="3.5" height="2.5" rx="0.5" fill="rgba(255,255,255,0.28)" />
+      <rect x="25" y="74" width="3.5" height="2.5" rx="0.5" fill="rgba(255,255,255,0.28)" />
+      <line x1="14" y1="56" x2="14" y2="79" stroke="rgba(255,255,255,0.07)" strokeWidth="0.9" />
+      <line x1="34" y1="56" x2="34" y2="79" stroke="rgba(255,255,255,0.07)" strokeWidth="0.9" />
       {full && <>
-        <path d="M8 40 Q5 52 7 63 L15 63 Q15 52 15 40 Z" fill={c} />
-        <path d="M40 40 Q43 52 41 63 L33 63 Q33 52 33 40 Z" fill={c} />
-        <rect x="7" y="59" width="8" height="4.5" rx="2" fill="rgba(255,255,255,0.11)" />
-        <rect x="33" y="59" width="8" height="4.5" rx="2" fill="rgba(255,255,255,0.11)" />
-        <circle cx="10.5" cy="62" r="0.7" fill="rgba(255,255,255,0.38)" />
-        <circle cx="37.5" cy="62" r="0.7" fill="rgba(255,255,255,0.38)" />
+        <path d="M8 44 Q5 60 7 78 L15 78 Q15 60 15 44 Z" fill={c} />
+        <path d="M40 44 Q43 60 41 78 L33 78 Q33 60 33 44 Z" fill={c} />
+        <rect x="7"  y="73" width="8" height="5.5" rx="2.5" fill="rgba(255,255,255,0.11)" />
+        <rect x="33" y="73" width="8" height="5.5" rx="2.5" fill="rgba(255,255,255,0.11)" />
+        <circle cx="10.5" cy="77" r="0.8" fill="rgba(255,255,255,0.38)" />
+        <circle cx="37.5" cy="77" r="0.8" fill="rgba(255,255,255,0.38)" />
       </>}
     </g>
   ),
 }
 
-// ─── Bottoms: (color, skin, isFeminine) ──────────────────────────────────────
-// COVERAGE RULE: every bottom MUST cover leg skin at x=15–23 (left) and
-// x=25–33 (right), y=65–87. Trouser-types use 3 rects: crotch + two legs.
+// ─── Bottoms — legs y=80–112, crotch y=80–91 ─────────────────────────────────
+// 3-rect coverage rule: crotch(x=lx–rx, y=80–91) + left leg(x=lx–24, y=91–112) + right leg(x=24–rx, y=91–112)
 const BOTTOMS = {
 
-  // Jeans: solid coverage via crotch rect + two leg rects + inner seam line
   jeans: (c, skin, fem) => {
-    const lx = fem ? 11 : 13   // left outer x (fem = slightly wider hips)
-    const rx = fem ? 37 : 35   // right outer x
+    const lx = fem ? 11 : 13, rx = fem ? 37 : 35
     return (
       <g>
-        {/* Crotch + upper leg — solid coverage */}
-        <rect x={lx} y="65" width={rx - lx} height="9" fill={c} />
-        {/* Left leg */}
-        <rect x={lx} y="74" width={24 - lx} height="14" rx="2" fill={c} />
-        {/* Right leg */}
-        <rect x="24" y="74" width={rx - 24} height="14" rx="2" fill={c} />
-        {/* Waistband */}
-        <rect x={lx} y="65" width={rx - lx} height="3.5" rx="1" fill="rgba(0,0,0,0.25)" />
-        {/* Belt loops */}
-        <rect x="17" y="64.5" width="2" height="4" rx="0.5" fill="rgba(0,0,0,0.3)" />
-        <rect x="29" y="64.5" width="2" height="4" rx="0.5" fill="rgba(0,0,0,0.3)" />
-        {/* Inner seam */}
-        <line x1="24" y1="74" x2="24" y2="88" stroke="rgba(0,0,0,0.16)" strokeWidth="1.3" />
-        {/* Pocket arcs */}
-        <path d="M14 72 Q18 73.5 22 72" stroke="rgba(255,255,255,0.1)" strokeWidth="0.7" fill="none" />
-        <path d="M26 72 Q30 73.5 34 72" stroke="rgba(255,255,255,0.1)" strokeWidth="0.7" fill="none" />
+        <rect x={lx} y="80" width={rx-lx} height="11" fill={c} />
+        <rect x={lx} y="91" width={24-lx} height="21" rx="2" fill={c} />
+        <rect x="24" y="91" width={rx-24} height="21" rx="2" fill={c} />
+        <rect x={lx} y="80" width={rx-lx} height="4" rx="1" fill="rgba(0,0,0,0.25)" />
+        <rect x="17" y="79" width="2" height="5" rx="0.5" fill="rgba(0,0,0,0.3)" />
+        <rect x="29" y="79" width="2" height="5" rx="0.5" fill="rgba(0,0,0,0.3)" />
+        <line x1="24" y1="91" x2="24" y2="112" stroke="rgba(0,0,0,0.16)" strokeWidth="1.3" />
+        <path d="M14 88 Q18 90 22 88" stroke="rgba(255,255,255,0.1)" strokeWidth="0.7" fill="none" />
+        <path d="M26 88 Q30 90 34 88" stroke="rgba(255,255,255,0.1)" strokeWidth="0.7" fill="none" />
       </g>
     )
   },
 
   shorts: (c, skin, fem) => {
-    const lx = fem ? 11 : 13
-    const rx = fem ? 37 : 35
+    const lx = fem ? 11 : 13, rx = fem ? 37 : 35
     return (
       <g>
-        {/* Crotch */}
-        <rect x={lx} y="65" width={rx - lx} height="9" fill={c} />
-        {/* Left leg */}
-        <rect x={lx} y="74" width={24 - lx} height="8" rx="2" fill={c} />
-        {/* Right leg */}
-        <rect x="24" y="74" width={rx - 24} height="8" rx="2" fill={c} />
-        {/* Waistband */}
-        <rect x={lx} y="65" width={rx - lx} height="3.5" rx="1" fill="rgba(0,0,0,0.22)" />
-        {/* Inner seam */}
-        <line x1="24" y1="74" x2="24" y2="82" stroke="rgba(0,0,0,0.14)" strokeWidth="1.2" />
+        <rect x={lx} y="80" width={rx-lx} height="11" fill={c} />
+        <rect x={lx} y="91" width={24-lx} height="11" rx="2" fill={c} />
+        <rect x="24" y="91" width={rx-24} height="11" rx="2" fill={c} />
+        <rect x={lx} y="80" width={rx-lx} height="4" rx="1" fill="rgba(0,0,0,0.22)" />
+        <line x1="24" y1="91" x2="24" y2="102" stroke="rgba(0,0,0,0.14)" strokeWidth="1.2" />
       </g>
     )
   },
 
   joggers: (c, skin, fem) => {
-    const lx = fem ? 11 : 13
-    const rx = fem ? 37 : 35
+    const lx = fem ? 11 : 13, rx = fem ? 37 : 35
     return (
       <g>
-        {/* Crotch */}
-        <rect x={lx} y="65" width={rx - lx} height="9" fill={c} />
-        {/* Left leg — round ankle (rx=4) */}
-        <rect x={lx} y="74" width={24 - lx} height="12" rx="4" fill={c} />
-        {/* Right leg */}
-        <rect x="24" y="74" width={rx - 24} height="12" rx="4" fill={c} />
-        {/* Draw cord */}
-        <path d="M20 65 L22 67.5 L26 67.5 L28 65" stroke="rgba(255,255,255,0.2)" strokeWidth="0.8" fill="none" />
-        {/* Ankle cuffs */}
-        <rect x={lx} y="82" width={24 - lx} height="4" rx="2" fill="rgba(0,0,0,0.2)" />
-        <rect x="24" y="82" width={rx - 24} height="4" rx="2" fill="rgba(0,0,0,0.2)" />
+        <rect x={lx} y="80" width={rx-lx} height="11" fill={c} />
+        <rect x={lx} y="91" width={24-lx} height="18" rx="5" fill={c} />
+        <rect x="24" y="91" width={rx-24} height="18" rx="5" fill={c} />
+        <path d="M20 80 L22 83 L26 83 L28 80" stroke="rgba(255,255,255,0.2)" strokeWidth="0.8" fill="none" />
+        <rect x={lx} y="104" width={24-lx} height="5" rx="2.5" fill="rgba(0,0,0,0.2)" />
+        <rect x="24" y="104" width={rx-24} height="5" rx="2.5" fill="rgba(0,0,0,0.2)" />
       </g>
     )
   },
 
   skirt: (c, skin, fem) => (
     <g>
-      <rect x="13" y="65" width="22" height="3" rx="1.5" fill="rgba(0,0,0,0.22)" />
-      {/* Flared A-line — covers full width, no leg gaps possible */}
-      <path d="M14 68 Q9 76 7 87 L41 87 Q39 76 34 68 Z" fill={c} />
-      <line x1="20" y1="68" x2="17" y2="87" stroke="rgba(255,255,255,0.09)" strokeWidth="0.7" />
-      <line x1="28" y1="68" x2="31" y2="87" stroke="rgba(255,255,255,0.09)" strokeWidth="0.7" />
+      <rect x="13" y="80" width="22" height="3.5" rx="1.5" fill="rgba(0,0,0,0.22)" />
+      <path d="M14 83.5 Q9 96 7 112 L41 112 Q39 96 34 83.5 Z" fill={c} />
+      <line x1="20" y1="84" x2="17" y2="112" stroke="rgba(255,255,255,0.09)" strokeWidth="0.7" />
+      <line x1="28" y1="84" x2="31" y2="112" stroke="rgba(255,255,255,0.09)" strokeWidth="0.7" />
     </g>
   ),
 
   longskirt: (c, skin, fem) => (
     <g>
-      <rect x="13" y="65" width="22" height="3" rx="1.5" fill="rgba(0,0,0,0.22)" />
-      <path d="M14 68 Q9 79 6 91 L42 91 Q39 79 34 68 Z" fill={c} />
-      <line x1="18" y1="68" x2="14" y2="91" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
-      <line x1="30" y1="68" x2="34" y2="91" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
-      <path d="M7 90 Q24 93 41 90" stroke="rgba(255,255,255,0.1)" strokeWidth="0.8" fill="none" />
+      <rect x="13" y="80" width="22" height="3.5" rx="1.5" fill="rgba(0,0,0,0.22)" />
+      <path d="M14 83.5 Q9 98 6 115 L42 115 Q39 98 34 83.5 Z" fill={c} />
+      <line x1="18" y1="84" x2="14" y2="115" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
+      <line x1="30" y1="84" x2="34" y2="115" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
+      <path d="M7 114 Q24 117 41 114" stroke="rgba(255,255,255,0.1)" strokeWidth="0.8" fill="none" />
     </g>
   ),
 
@@ -375,90 +360,77 @@ const BOTTOMS = {
     const gold = 'rgba(218,165,32,0.72)'
     return (
       <g>
-        {/* Bare midriff */}
-        <rect x="13" y="52" width="22" height="7" fill={skin} />
-        {/* Skirt — path wide enough to cover legs */}
-        <path d="M12 59 L10 91 L38 91 L36 59 Z" fill={c} />
-        {/* Wrap fold shadow */}
-        <path d="M31 59 L33 91 L38 91 L36 59 Z" fill="rgba(0,0,0,0.13)" />
+        {/* Midriff */}
+        <rect x="13" y="64" width="22" height="9" fill={skin} />
+        {/* Floor-length skirt — wide enough to cover legs */}
+        <path d="M12 73 L10 114 L38 114 L36 73 Z" fill={c} />
+        <path d="M31 73 L33 114 L38 114 L36 73 Z" fill="rgba(0,0,0,0.13)" />
         {/* Pleats */}
-        <line x1="17" y1="59" x2="16" y2="91" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
-        <line x1="20" y1="59" x2="19" y2="91" stroke="rgba(255,255,255,0.09)" strokeWidth="1" />
-        <line x1="23" y1="59" x2="22" y2="91" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
-        {/* Waist tuck */}
-        <rect x="12" y="59" width="24" height="2.5" rx="1" fill="rgba(0,0,0,0.2)" />
-        {/* Gold hem border */}
-        <rect x="10" y="87" width="28" height="4" fill={gold} />
-        <line x1="10" y1="89.2" x2="38" y2="89.2" stroke="rgba(255,255,255,0.24)" strokeWidth="0.5" />
+        <line x1="17" y1="73" x2="16" y2="114" stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
+        <line x1="20" y1="73" x2="19" y2="114" stroke="rgba(255,255,255,0.09)" strokeWidth="1" />
+        <line x1="23" y1="73" x2="22" y2="114" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+        <rect x="12" y="73" width="24" height="3" rx="1" fill="rgba(0,0,0,0.2)" />
+        {/* Gold hem */}
+        <rect x="10" y="110" width="28" height="4" fill={gold} />
+        <line x1="10" y1="112" x2="38" y2="112" stroke="rgba(255,255,255,0.24)" strokeWidth="0.5" />
       </g>
     )
   },
 
-  // Salwar: wide patiala style — legs meet at centre x=24
   salwar: (c, skin, fem) => (
     <g>
-      {/* Left wide leg: outer x=10, inner x=24 */}
-      <path d="M10 65 Q7 78 11 87 L24 87 Q22 78 21 65 Z" fill={c} />
-      {/* Right wide leg: inner x=24, outer x=38 */}
-      <path d="M38 65 Q41 78 37 87 L24 87 Q26 78 27 65 Z" fill={c} />
-      {/* Crotch piece connecting legs */}
-      <rect x="21" y="65" width="6" height="9" fill={c} />
+      {/* Wide left leg meeting centre at x=24 */}
+      <path d="M10 80 Q7 96 11 110 L24 110 Q22 96 21 80 Z" fill={c} />
+      {/* Wide right leg */}
+      <path d="M38 80 Q41 96 37 110 L24 110 Q26 96 27 80 Z" fill={c} />
+      {/* Crotch fill */}
+      <rect x="21" y="80" width="6" height="12" fill={c} />
       {/* Ankle gathers */}
-      <rect x="11" y="83" width="13" height="2" rx="1" fill="rgba(255,255,255,0.16)" />
-      <rect x="11" y="85" width="13" height="2" rx="1" fill="rgba(255,255,255,0.11)" />
-      <rect x="24" y="83" width="13" height="2" rx="1" fill="rgba(255,255,255,0.16)" />
-      <rect x="24" y="85" width="13" height="2" rx="1" fill="rgba(255,255,255,0.11)" />
+      <rect x="11" y="105" width="13" height="2.5" rx="1" fill="rgba(255,255,255,0.16)" />
+      <rect x="11" y="107.5" width="13" height="2.5" rx="1" fill="rgba(255,255,255,0.11)" />
+      <rect x="24" y="105" width="13" height="2.5" rx="1" fill="rgba(255,255,255,0.16)" />
+      <rect x="24" y="107.5" width="13" height="2.5" rx="1" fill="rgba(255,255,255,0.11)" />
     </g>
   ),
 
-  // Formal trousers: same solid-coverage approach as jeans but sharper
   formal: (c, skin, fem) => {
-    const lx = fem ? 11 : 13
-    const rx = fem ? 37 : 35
+    const lx = fem ? 11 : 13, rx = fem ? 37 : 35
     return (
       <g>
-        <rect x={lx} y="65" width={rx - lx} height="9" fill={c} />
-        <rect x={lx} y="74" width={24 - lx} height="14" rx="2" fill={c} />
-        <rect x="24" y="74" width={rx - 24} height="14" rx="2" fill={c} />
-        {/* Belt */}
-        <rect x={lx} y="65" width={rx - lx} height="3.5" rx="1" fill="rgba(0,0,0,0.4)" />
-        <rect x="22" y="65" width="4" height="3.5" rx="0.5" fill="#C47A1F" />
-        {/* Crease lines */}
-        <line x1="18.5" y1="74" x2="17.5" y2="88" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
-        <line x1="29.5" y1="74" x2="30.5" y2="88" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
-        <line x1="24" y1="74" x2="24" y2="88" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+        <rect x={lx} y="80" width={rx-lx} height="11" fill={c} />
+        <rect x={lx} y="91" width={24-lx} height="21" rx="2" fill={c} />
+        <rect x="24" y="91" width={rx-24} height="21" rx="2" fill={c} />
+        <rect x={lx} y="80" width={rx-lx} height="4" rx="1" fill="rgba(0,0,0,0.4)" />
+        <rect x="22" y="80" width="4" height="4" rx="0.5" fill="#C47A1F" />
+        <line x1="24" y1="91" x2="24" y2="112" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+        <line x1="18.5" y1="92" x2="17.5" y2="112" stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" />
+        <line x1="29.5" y1="92" x2="30.5" y2="112" stroke="rgba(255,255,255,0.07)" strokeWidth="0.8" />
       </g>
     )
   },
 
-  // Dhoti: two wrapping halves meeting at centre
   dhoti: (c, skin, fem) => (
     <g>
-      {/* Left wrap: x=13 to x=24 */}
-      <path d="M13 65 Q11 77 12 87 L24 87 L24 65 Z" fill={c} />
-      {/* Right wrap: x=24 to x=35 */}
-      <path d="M35 65 Q37 77 36 87 L24 87 L24 65 Z" fill={c} />
-      {/* Centre drape fold */}
-      <path d="M24 65 Q27 73 26 81 Q25 85 24 87" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" fill="none" />
-      <line x1="17" y1="65" x2="15" y2="87" stroke="rgba(255,255,255,0.1)" strokeWidth="0.8" />
-      <line x1="20" y1="65" x2="19" y2="87" stroke="rgba(255,255,255,0.1)" strokeWidth="0.8" />
+      <path d="M13 80 Q11 96 12 110 L24 110 L24 80 Z" fill={c} />
+      <path d="M35 80 Q37 96 36 110 L24 110 L24 80 Z" fill={c} />
+      <path d="M24 80 Q27 92 26 102 Q25 107 24 110"
+        stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" fill="none" />
+      <line x1="17" y1="80" x2="15" y2="110" stroke="rgba(255,255,255,0.1)" strokeWidth="0.8" />
+      <line x1="20" y1="80" x2="19" y2="110" stroke="rgba(255,255,255,0.1)" strokeWidth="0.8" />
     </g>
   ),
 }
 
-// ─── Saree pallu — rendered AFTER top so it drapes over blouse ───────────
+// ─── Saree pallu ──────────────────────────────────────────────────────────────
 function SAREE_PALLU(c) {
   const gold = 'rgba(218,165,32,0.72)'
   return (
     <g>
-      {/* Pallu hanging from left shoulder */}
-      <path d="M10 40 Q9 56 9 73 L13 73 Q13 56 14 40 Z" fill={c} opacity="0.62" />
-      {/* Pallu crossing chest */}
-      <path d="M34 40 Q28 46 20 59 L22 59 Q30 46 36 40 Z" fill={c} opacity="0.57" />
-      {/* Gold borders */}
-      <path d="M34 40 Q28 46 20 59" stroke={gold} strokeWidth="1.2" fill="none" />
-      <path d="M10 40 Q9 56 9 73" stroke={gold} strokeWidth="1.2" fill="none" />
-      <line x1="9" y1="72" x2="13" y2="72" stroke={gold} strokeWidth="1" />
+      <path d="M10 44 Q9 66 9 88 L13 88 Q13 66 14 44 Z" fill={c} opacity="0.62" />
+      <path d="M34 44 Q28 54 20 70 L22 70 Q30 54 36 44 Z" fill={c} opacity="0.57" />
+      <path d="M34 44 Q28 54 20 70" stroke={gold} strokeWidth="1.2" fill="none" />
+      <path d="M10 44 Q9 66 9 88"   stroke={gold} strokeWidth="1.2" fill="none" />
+      <line x1="9" y1="87" x2="13" y2="87" stroke={gold} strokeWidth="1" />
     </g>
   )
 }
@@ -480,7 +452,7 @@ const BEARDS = {
 }
 
 // ─── Accessories ─────────────────────────────────────────────────────────────
-const ACCESSORY_RENDERERS = {
+const ACC = {
   Glasses:    () => <g>
     <rect x="14" y="21.5" width="8" height="5.5" rx="2.5" stroke="rgba(180,180,180,0.9)" strokeWidth="0.8" fill="rgba(150,200,255,0.1)" />
     <rect x="26" y="21.5" width="8" height="5.5" rx="2.5" stroke="rgba(180,180,180,0.9)" strokeWidth="0.8" fill="rgba(150,200,255,0.1)" />
@@ -538,32 +510,36 @@ export default function AvatarSVG({ config = {}, extras = [], size = 64, fullBod
   const shoeColor   = SHOE_COLORS[cfg.shoeColorIndex]           ?? SHOE_COLORS[0]
   const accentColor = ACCESSORY_COLORS[cfg.accessoryColorIndex] ?? ACCESSORY_COLORS[0]
 
-  // Gender flags
   const isFem  = cfg.gender === 'feminine'
   const isMasc = cfg.gender === 'masculine'
   const isNB   = cfg.gender === 'non-binary' || cfg.gender === 'fluid'
 
-  // Gender-responsive facial features
-  const eyeRx     = isFem ? 2.65 : isNB ? 2.45 : 2.3
-  const eyeRy     = isFem ? 1.95 : isNB ? 1.78 : 1.62
-  const browW     = isMasc ? 1.8 : isNB ? 1.3 : 1.05
-  const lipStartX = isFem ? 21   : 21.8
-  const lipEndX   = isFem ? 27   : 26.2
-  const lipCy     = isFem ? 32.5 : 31.6
-  const lipColor  = cfg.skinIndex <= 2 ? 'rgba(172,88,68,0.8)' : 'rgba(142,66,46,0.8)'
-  const irisColor = cfg.skinIndex >= 8 ? 'rgba(45,28,12,0.92)' : 'rgba(55,38,18,0.92)'
+  // Gender-responsive face features
+  const eyeRx  = isFem ? 2.65 : isNB ? 2.45 : 2.3
+  const eyeRy  = isFem ? 1.95 : isNB ? 1.78 : 1.62
+  const browW  = isMasc ? 1.8 : isNB ? 1.3 : 1.05
+  const lipSX  = isFem ? 21.0 : 21.8
+  const lipEX  = isFem ? 27.0 : 26.2
+  const lipCY  = isFem ? 32.5 : 31.6
+  const lipStW = isFem ? 1.45 : 1.15
+  const lipCol = cfg.skinIndex <= 2 ? 'rgba(172,88,68,0.8)' : 'rgba(142,66,46,0.8)'
+  const irisC  = cfg.skinIndex >= 8 ? 'rgba(45,28,12,0.92)' : 'rgba(55,38,18,0.92)'
 
-  const faceFn   = FACE_PATHS[FACE_SHAPES[cfg.faceShapeIndex]] ?? FACE_PATHS.oval
-  const hairFn   = HAIR_PATHS[cfg.hairStyle]  ?? HAIR_PATHS.short
-  const topFn    = TOPS[cfg.topStyle]         ?? TOPS.tshirt
-  const bottomFn = BOTTOMS[cfg.bottomStyle]   ?? BOTTOMS.jeans
-  const beardFn  = BEARDS[cfg.beardStyle]     ?? BEARDS.none
-  const bodyScale = BUILD_SCALE[cfg.build]    ?? 1
+  const faceFn    = FACE_PATHS[FACE_SHAPES[cfg.faceShapeIndex]] ?? FACE_PATHS.oval
+  const hairFn    = HAIR_PATHS[cfg.hairStyle]   ?? HAIR_PATHS.short
+  const topFn     = TOPS[cfg.topStyle]          ?? TOPS.tshirt
+  const bottomFn  = BOTTOMS[cfg.bottomStyle]    ?? BOTTOMS.jeans
+  const beardFn   = BEARDS[cfg.beardStyle]      ?? BEARDS.none
+  const bodyScale = BUILD_SCALE[cfg.build]      ?? 1
   const bodyXform = `translate(24,0) scale(${bodyScale},1) translate(-24,0)`
   const headwear  = extras.filter(e => e === 'Cap' || e === 'Beanie')
 
-  const viewH = fullBody ? 96 : 64
+  // Full-body uses 120-unit viewBox for realistic head:body proportions
+  const viewH = fullBody ? 120 : 64
   const svgH  = Math.round(size * viewH / 48)
+
+  // Unique gradient ID per instance to avoid clashes when multiple avatars render
+  const gradId = `skin-${cfg.skinIndex}-${cfg.faceShapeIndex}`
 
   return (
     <svg
@@ -572,32 +548,39 @@ export default function AvatarSVG({ config = {}, extras = [], size = 64, fullBod
       fill="none" xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      {/* ── Hair behind head ── */}
+      <defs>
+        {/* Subtle face shading: bright highlight top-right, slight shadow bottom */}
+        <radialGradient id={gradId} cx="62%" cy="28%" r="65%">
+          <stop offset="0%"   stopColor="rgba(255,255,255,0.18)" />
+          <stop offset="60%"  stopColor="rgba(255,255,255,0)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.14)" />
+        </radialGradient>
+      </defs>
+
+      {/* Hair behind head */}
       {hairFn(hairColor)}
 
-      {/* ── Face ── */}
+      {/* Face base + gradient shading overlay */}
       {faceFn(skin)}
+      <ellipse cx="24" cy="26" rx="11" ry="13" fill={`url(#${gradId})`} />
 
-      {/* ── Face detail: highlight ── */}
-      <ellipse cx="21" cy="22" rx="4" ry="5" fill="rgba(255,255,255,0.06)" />
-
-      {/* ── Cheek blush (always subtle) ── */}
+      {/* Cheeks */}
       <ellipse cx="17" cy="28.5" rx="4"   ry="2.5" fill="rgba(220,110,90,0.11)" />
       <ellipse cx="31" cy="28.5" rx="4"   ry="2.5" fill="rgba(220,110,90,0.11)" />
-      {extras.includes('Blush') && ACCESSORY_RENDERERS.Blush()}
+      {extras.includes('Blush') && ACC.Blush()}
 
-      {/* ── Eyes: sclera + iris + pupil + catchlight ── */}
-      <ellipse cx="20" cy="24"     rx={eyeRx} ry={eyeRy} fill="rgba(255,255,255,0.93)" />
-      <circle  cx="20" cy="24"     r={eyeRx * 0.57}       fill={irisColor} />
-      <circle  cx="20" cy="24"     r={eyeRx * 0.29}       fill="#0d0d0d" />
-      <circle  cx={20 + eyeRx * 0.28} cy={24 - eyeRy * 0.37} r={eyeRx * 0.16} fill="rgba(255,255,255,0.87)" />
+      {/* Eyes — sclera + iris + pupil + catchlight */}
+      <ellipse cx="20" cy="24" rx={eyeRx} ry={eyeRy} fill="rgba(255,255,255,0.93)" />
+      <circle  cx="20" cy="24" r={eyeRx*0.57}         fill={irisC} />
+      <circle  cx="20" cy="24" r={eyeRx*0.29}         fill="#0d0d0d" />
+      <circle  cx={20+eyeRx*0.28} cy={24-eyeRy*0.38} r={eyeRx*0.16} fill="rgba(255,255,255,0.88)" />
 
-      <ellipse cx="28" cy="24"     rx={eyeRx} ry={eyeRy} fill="rgba(255,255,255,0.93)" />
-      <circle  cx="28" cy="24"     r={eyeRx * 0.57}       fill={irisColor} />
-      <circle  cx="28" cy="24"     r={eyeRx * 0.29}       fill="#0d0d0d" />
-      <circle  cx={28 + eyeRx * 0.28} cy={24 - eyeRy * 0.37} r={eyeRx * 0.16} fill="rgba(255,255,255,0.87)" />
+      <ellipse cx="28" cy="24" rx={eyeRx} ry={eyeRy} fill="rgba(255,255,255,0.93)" />
+      <circle  cx="28" cy="24" r={eyeRx*0.57}         fill={irisC} />
+      <circle  cx="28" cy="24" r={eyeRx*0.29}         fill="#0d0d0d" />
+      <circle  cx={28+eyeRx*0.28} cy={24-eyeRy*0.38} r={eyeRx*0.16} fill="rgba(255,255,255,0.88)" />
 
-      {/* ── Eyelashes: feminine only ── */}
+      {/* Eyelashes — feminine only */}
       {isFem && (
         <g stroke={hairColor} strokeWidth="0.65" strokeLinecap="round" opacity="0.68">
           <line x1="17.8" y1="22.5" x2="17.3" y2="21.4" />
@@ -608,8 +591,7 @@ export default function AvatarSVG({ config = {}, extras = [], size = 64, fullBod
           <line x1="29.8" y1="22.5" x2="30.3" y2="21.4" />
         </g>
       )}
-
-      {/* ── Non-binary/fluid: thin upper eyelid line instead of lashes ── */}
+      {/* Non-binary: painted eyelid arc */}
       {isNB && (
         <g stroke={hairColor} strokeWidth="0.5" strokeLinecap="round" opacity="0.45">
           <path d="M17.7 22.7 Q20 21.8 22.3 22.7" fill="none" />
@@ -617,74 +599,72 @@ export default function AvatarSVG({ config = {}, extras = [], size = 64, fullBod
         </g>
       )}
 
-      {/* ── Eyebrows (gender-responsive thickness) ── */}
-      <path d={`M${isFem?18:17.5} ${isFem?21.5:21.8} Q20 ${isFem?20.2:20.4} ${isFem?22.5:22.5} ${isFem?21.2:21.3}`}
+      {/* Eyebrows */}
+      <path d={`M${isFem?18:17.5} ${isFem?21.5:21.8} Q20 ${isFem?20.2:20.4} 22.5 ${isFem?21.2:21.3}`}
         stroke={hairColor} strokeWidth={browW} fill="none" strokeLinecap="round" />
-      <path d={`M${isFem?25.5:25.5} ${isFem?21.2:21.3} Q28 ${isFem?20.2:20.4} ${isFem?30:30.5} ${isFem?21.5:21.8}`}
+      <path d={`M25.5 ${isFem?21.2:21.3} Q28 ${isFem?20.2:20.4} ${isFem?30:30.5} ${isFem?21.5:21.8}`}
         stroke={hairColor} strokeWidth={browW} fill="none" strokeLinecap="round" />
 
-      {/* ── Nose ── */}
+      {/* Nose */}
       <ellipse cx="24" cy="27.8" rx="0.88" ry="0.52" fill="rgba(0,0,0,0.16)" />
 
-      {/* ── Lips (gender-responsive width + curve) ── */}
-      <path d={`M${lipStartX} 30.5 Q24 ${lipCy} ${lipEndX} 30.5`}
-        stroke={lipColor} strokeWidth={isFem ? 1.45 : 1.15}
-        fill="none" strokeLinecap="round" />
-      {/* Upper lip bow for feminine */}
+      {/* Lips */}
+      <path d={`M${lipSX} 30.5 Q24 ${lipCY} ${lipEX} 30.5`}
+        stroke={lipCol} strokeWidth={lipStW} fill="none" strokeLinecap="round" />
       {isFem && (
         <path d="M21.2 30.5 Q22.5 29.8 24 30.2 Q25.5 29.8 26.8 30.5"
-          stroke={lipColor} strokeWidth="0.8" fill="none" strokeLinecap="round" opacity="0.6" />
+          stroke={lipCol} strokeWidth="0.8" fill="none" strokeLinecap="round" opacity="0.6" />
       )}
 
-      {/* ── Extras on face ── */}
-      {extras.includes('Freckles')    && ACCESSORY_RENDERERS.Freckles()}
+      {/* Face extras */}
+      {extras.includes('Freckles')   && ACC.Freckles()}
       {beardFn(hairColor)}
-      {extras.includes('Earrings')    && ACCESSORY_RENDERERS.Earrings()}
-      {extras.includes('Glasses')     && ACCESSORY_RENDERERS.Glasses()}
-      {extras.includes('Sunglasses')  && ACCESSORY_RENDERERS.Sunglasses()}
+      {extras.includes('Earrings')   && ACC.Earrings()}
+      {extras.includes('Glasses')    && ACC.Glasses()}
+      {extras.includes('Sunglasses') && ACC.Sunglasses()}
 
       {/* ── Body group (build-scaled) ── */}
       <g transform={bodyXform}>
 
         {/* Neck */}
-        <rect x="20" y="37" width="8" height="5.5" fill={skin} />
+        <rect x="20" y="38" width="8" height="8" fill={skin} />
 
-        {/* Arm skin bases — rendered before top so sleeves cover them */}
+        {/* Arm skin — rendered before top so sleeves overlay */}
         {fullBody && <>
-          <path d="M8 42 C6 50 6 59 8 65 Q10 68 12.5 67.5 Q14.5 67.5 15 63 C15 57 15 50 15 42 Z" fill={skin} />
-          <ellipse cx="11" cy="68" rx="3.2" ry="2.3" fill={skin} />
-          <path d="M40 42 C42 50 42 59 40 65 Q38 68 35.5 67.5 Q33.5 67.5 33 63 C33 57 33 50 33 42 Z" fill={skin} />
-          <ellipse cx="37" cy="68" rx="3.2" ry="2.3" fill={skin} />
+          <path d="M8 46 C6 60 6 72 8 80 Q10 84 12.5 83 Q14.5 83 15 78 C15 70 15 58 15 46 Z" fill={skin} />
+          <ellipse cx="11" cy="84" rx="3.2" ry="2.3" fill={skin} />
+          <path d="M40 46 C42 60 42 72 40 80 Q38 84 35.5 83 Q33.5 83 33 78 C33 70 33 58 33 46 Z" fill={skin} />
+          <ellipse cx="37" cy="84" rx="3.2" ry="2.3" fill={skin} />
         </>}
 
-        {/* Leg skin bases — covered by bottom style below */}
+        {/* Leg skin — covered by bottom style */}
         {fullBody && <>
-          <path d="M15 65 L14 87 Q14 88 19 88 Q22.5 88 23 87 L23 65 Z" fill={skin} />
-          <path d="M25 65 L25 87 Q25.5 88 29 88 Q34 88 34 87 L33 65 Z" fill={skin} />
+          <path d="M15 80 L14 111 Q14 112 19 112 Q22.5 112 23 111 L23 80 Z" fill={skin} />
+          <path d="M25 80 L25 111 Q25.5 112 29 112 Q34 112 34 111 L33 80 Z" fill={skin} />
         </>}
 
-        {/* Bottom BEFORE top — long tops (kameez) will cover it */}
+        {/* Bottom BEFORE top (long tops like kameez cover legs) */}
         {fullBody && bottomFn(bottomColor, skin, isFem)}
 
-        {/* Top — renders over bottom */}
+        {/* Top over bottom */}
         {topFn(topColor, cfg.gender, fullBody)}
 
-        {/* Saree pallu — AFTER top so it drapes over the blouse */}
+        {/* Saree pallu AFTER top */}
         {fullBody && cfg.bottomStyle === 'saree' && SAREE_PALLU(bottomColor)}
 
         {/* Shoes */}
         {fullBody && <>
-          <path d="M13 87 L12 91 Q12 93 19 93 Q24 93 24 90 L24 87 Z" fill={shoeColor} />
-          <path d="M24 87 L24 90 Q24 93 29 93 Q36 93 36 91 L35 87 Z" fill={shoeColor} />
-          <path d="M14 89 Q17.5 88.2 22 89" stroke="rgba(255,255,255,0.1)"  strokeWidth="0.6" fill="none" />
-          <path d="M26 89 Q29.5 88.2 34 89" stroke="rgba(255,255,255,0.1)"  strokeWidth="0.6" fill="none" />
+          <path d="M13 111 L12 116 Q12 118 19 118 Q24 118 24 115 L24 111 Z" fill={shoeColor} />
+          <path d="M24 111 L24 115 Q24 118 29 118 Q36 118 36 116 L35 111 Z" fill={shoeColor} />
+          <path d="M14 113 Q17.5 112 22 113" stroke="rgba(255,255,255,0.1)" strokeWidth="0.6" fill="none" />
+          <path d="M26 113 Q29.5 112 34 113" stroke="rgba(255,255,255,0.1)" strokeWidth="0.6" fill="none" />
         </>}
 
       </g>
 
-      {/* Headwear — on top of everything */}
+      {/* Headwear on top of everything */}
       {headwear.map(h => (
-        <g key={h}>{ACCESSORY_RENDERERS[h] && ACCESSORY_RENDERERS[h](hairColor, accentColor)}</g>
+        <g key={h}>{ACC[h] && ACC[h](hairColor, accentColor)}</g>
       ))}
     </svg>
   )
