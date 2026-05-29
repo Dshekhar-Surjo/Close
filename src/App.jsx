@@ -42,10 +42,11 @@ function AppRoutes() {
     )
   }
 
-  // Logged in but no avatar created yet → force avatar setup
-  // (profile is null while loading; show spinner to avoid flash)
-  if (profile === null) return <Spinner />
-  if (!profile.avatar_config || Object.keys(profile.avatar_config).length === 0) {
+  // Profile still fetching
+  if (profile === undefined) return <Spinner />
+
+  // No profile yet (new user) or avatar not set up → go to avatar creator
+  if (!profile || !profile.avatar_config || Object.keys(profile.avatar_config).length === 0) {
     return <AvatarCreatorScreen />
   }
 
