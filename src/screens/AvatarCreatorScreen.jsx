@@ -142,9 +142,9 @@ export default function AvatarCreatorScreen() {
 
   const hasHeadwear = extras.includes('Cap') || extras.includes('Beanie')
 
-  // Avatar preview: full body, 120px wide → height = 120 * 96/48 = 240px
+  // Avatar preview: full body, 120px wide → height = 120 * 120/48 = 300px
   const PREVIEW_W = 120
-  const PREVIEW_H = 240
+  const PREVIEW_H = 300
 
   return (
     <div className="screen" style={{ background: 'var(--bg)' }}>
@@ -184,7 +184,7 @@ export default function AvatarCreatorScreen() {
 
       {/* Preview */}
       <div style={{
-        height: 270, background: '#13172a',
+        height: 330, background: '#13172a',
         borderBottom: '0.5px solid var(--border)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         position: 'relative', flexShrink: 0,
