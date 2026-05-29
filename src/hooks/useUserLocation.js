@@ -31,6 +31,8 @@ export function useUserLocation(userId, { ghostMode = false } = {}) {
         const loc = { lat: coords.latitude, lng: coords.longitude }
         currentLoc.current = loc
         setLocation(loc)
+        // Persist so map survives phone lock / page remount
+        try { sessionStorage.setItem('lastKnownLocation', JSON.stringify(loc)) } catch {}
       },
       (err) => console.warn('[location] GPS error:', err),
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
