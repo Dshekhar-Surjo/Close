@@ -1,5 +1,5 @@
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react' // useState used in ProfileSheet too
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { useUserLocation } from '../hooks/useUserLocation'
@@ -21,30 +21,38 @@ function haversineM(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-// ─── Live Mapbox map with React overlay markers ───────────────────────────────
-function LiveMap({ userLoc, nearbyUsers, myProfile, onUserClick, ghostMode, mapInstanceRef }) {
+// ─── Live map with React overlay markers ─────────────────────────────────────
+function LiveMap({ userLoc, nearbyUsers, closeConnections, myProfile, onUserClick, ghostMode, mapInstanceRef }) {
   const containerRef  = useRef(null)
   const mapRef        = useRef(null)
   const userLocRef    = useRef(userLoc)
   const nearbyRef     = useRef(nearbyUsers)
-  const [mapLoaded,   setMapLoaded]   = useState(false)
-  const [mePos,       setMePos]       = useState(null)
-  const [userPositions, setUserPositions] = useState([])
+  const closeRef      = useRef(closeConnections)
+  const [mapLoaded,      setMapLoaded]      = useState(false)
+  const [mePos,          setMePos]          = useState(null)
+  const [userPositions,  setUserPositions]  = useState([])
+  const [closePositions, setClosePositions] = useState([])
 
-  useEffect(() => { userLocRef.current = userLoc },    [userLoc])
-  useEffect(() => { nearbyRef.current  = nearbyUsers }, [nearbyUsers])
+  useEffect(() => { userLocRef.current = userLoc },          [userLoc])
+  useEffect(() => { nearbyRef.current  = nearbyUsers },       [nearbyUsers])
+  useEffect(() => { closeRef.current   = closeConnections },  [closeConnections])
 
   const reproject = useCallback(() => {
     const map = mapRef.current
     if (!map) return
     const loc   = userLocRef.current
     const users = nearbyRef.current
+    const close = closeRef.current
 
     if (loc) {
       const p = map.project([loc.lng, loc.lat])
       setMePos({ x: p.x, y: p.y })
     }
     setUserPositions(users.map(u => {
+      const p = map.project([u.lng, u.lat])
+      return { ...u, x: p.x, y: p.y }
+    }))
+    setClosePositions(close.map(u => {
       const p = map.project([u.lng, u.lat])
       return { ...u, x: p.x, y: p.y }
     }))
@@ -88,7 +96,7 @@ function LiveMap({ userLoc, nearbyUsers, myProfile, onUserClick, ghostMode, mapI
     reproject()
   }, [userLoc, mapLoaded, reproject])
 
-  useEffect(() => { if (mapLoaded) reproject() }, [nearbyUsers, mapLoaded, reproject])
+  useEffect(() => { if (mapLoaded) reproject() }, [nearbyUsers, closeConnections, mapLoaded, reproject])
 
   return (
     <div style={{ position: 'absolute', inset: 0 }}>
@@ -166,12 +174,57 @@ function LiveMap({ userLoc, nearbyUsers, myProfile, onUserClick, ghostMode, mapI
           }}>{u.name}</span>
         </div>
       ))}
+
+      {/* Close connections — always visible, gold dashed ring */}
+      {closePositions.map(u => (
+        <div key={`close-${u.id}`} onClick={() => onUserClick(u)} style={{
+          position: 'absolute', left: u.x, top: u.y,
+          transform: 'translate(-50%, -100%)',
+          cursor: 'pointer', zIndex: 9,
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+        }}>
+          {/* Subtle gold pulse ring */}
+          <div style={{
+            position: 'absolute', width: 46, height: 46, borderRadius: '50%',
+            border: '1.5px solid rgba(249,199,79,0.4)',
+            top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+            animation: 'pulse-ring 2.5s ease-out infinite',
+          }} />
+          <div style={{
+            width: 38, height: 38, borderRadius: '50%',
+            border: '2px dashed #f9c74f', background: '#1a1a2e',
+            overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          }}>
+            <AvatarSVG config={u.avatar} extras={u.extras || []} size={36} />
+          </div>
+          <span style={{
+            fontSize: 10, color: '#f9c74f',
+            background: 'rgba(0,0,0,0.7)',
+            padding: '1px 5px', borderRadius: 4, marginTop: 3, whiteSpace: 'nowrap',
+          }}>◈ {u.name}</span>
+        </div>
+      ))}
     </div>
   )
 }
 
 // ─── Profile bottom sheet ─────────────────────────────────────────────────────
-function ProfileSheet({ user, onClose, onPing }) {
+const HI_RANGE  = 50  // metres — must be within this to interact
+const PING_RANGE = 50
+
+function ProfileSheet({ user, onClose, onPing, onHi }) {
+  const [waved,      setWaved]      = useState(false)
+  const [waving,     setWaving]     = useState(false)
+  const canInteract  = user.isClose || (user.distance != null && user.distance <= HI_RANGE)
+  const tooFar       = user.distance != null && user.distance > PING_RANGE && !user.isClose
+
+  const handleHi = async () => {
+    setWaving(true)
+    await onHi(user)
+    setWaved(true)
+    setWaving(false)
+  }
+
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 20 }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', animation: 'fadeIn 0.2s ease' }} />
@@ -182,18 +235,74 @@ function ProfileSheet({ user, onClose, onPing }) {
         padding: '12px 20px 32px', animation: 'slideUp 0.3s ease',
       }}>
         <div style={{ width: 36, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.2)', margin: '0 auto 16px' }} />
+
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-          <div style={{ width: 80, height: 80, borderRadius: '50%', border: '2.5px solid var(--accent)', background: '#1e1b4b', overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div style={{
+            width: 80, height: 80, borderRadius: '50%',
+            border: `2.5px solid ${user.isClose ? '#f9c74f' : 'var(--accent)'}`,
+            background: '#1e1b4b', overflow: 'hidden',
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          }}>
             <AvatarSVG config={user.avatar} extras={user.extras || []} size={78} />
           </div>
         </div>
-        <h2 style={{ textAlign: 'center', fontSize: 18, fontWeight: 500, color: '#fff', marginBottom: 4 }}>{user.name}</h2>
-        <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-          <span style={{ color: 'var(--accent)', fontSize: 13 }}>◎</span> {user.distance}m away
+
+        <h2 style={{ textAlign: 'center', fontSize: 18, fontWeight: 500, color: '#fff', marginBottom: 4 }}>
+          {user.name}
+          {user.isClose && <span style={{ fontSize: 13, color: '#f9c74f', marginLeft: 6 }}>◈</span>}
+        </h2>
+        <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+          <span style={{ color: 'var(--accent)', fontSize: 13 }}>◎</span>
+          {user.distance != null ? `${user.distance}m away` : 'close friend'}
         </p>
+
+        {/* Too far hint */}
+        {tooFar && (
+          <div style={{
+            textAlign: 'center', fontSize: 12, color: 'var(--text-muted)',
+            background: 'rgba(255,255,255,0.04)', borderRadius: 10,
+            padding: '8px 12px', marginBottom: 12,
+          }}>
+            📍 Get within 50m to say Hi or Ping
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => onPing(user)} style={{ flex: 1, height: 46, borderRadius: 23, background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>↗ Ping</button>
-          <button onClick={onClose} style={{ width: 46, height: 46, borderRadius: '50%', background: 'transparent', border: '0.5px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.5)', fontSize: 18, cursor: 'pointer' }}>✕</button>
+          {/* Hi button */}
+          {canInteract && (
+            <button
+              onClick={waved ? undefined : handleHi}
+              disabled={waving}
+              style={{
+                flex: 1, height: 46, borderRadius: 23,
+                background: waved ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.09)',
+                border: `0.5px solid ${waved ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.2)'}`,
+                color: waved ? 'var(--text-muted)' : '#fff',
+                fontSize: 14, fontWeight: 500, cursor: waved ? 'default' : 'pointer',
+              }}
+            >
+              {waved ? 'Waved 👋' : waving ? '…' : 'Hi 👋'}
+            </button>
+          )}
+
+          {/* Ping button */}
+          <button
+            onClick={() => canInteract && onPing(user)}
+            style={{
+              flex: 1, height: 46, borderRadius: 23,
+              background: canInteract ? 'var(--accent)' : 'rgba(127,119,221,0.2)',
+              color: '#fff', fontSize: 14, fontWeight: 500,
+              cursor: canInteract ? 'pointer' : 'not-allowed',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              opacity: canInteract ? 1 : 0.5,
+            }}
+          >↗ Ping</button>
+
+          <button onClick={onClose} style={{
+            width: 46, height: 46, borderRadius: '50%',
+            background: 'transparent', border: '0.5px solid rgba(255,255,255,0.15)',
+            color: 'rgba(255,255,255,0.5)', fontSize: 18, cursor: 'pointer',
+          }}>✕</button>
         </div>
       </div>
     </div>
@@ -206,10 +315,11 @@ export default function MapScreen() {
   const { session, profile, ghostMode, setGhostMode, visibilityRadius } = useApp()
   const mapInstanceRef    = useRef(null)
 
-  const [selectedUser,  setSelectedUser]  = useState(null)
-  const [nearbyUsers,   setNearbyUsers]   = useState([])
+  const [selectedUser,     setSelectedUser]     = useState(null)
+  const [nearbyUsers,      setNearbyUsers]      = useState([])
+  const [closeConnections, setCloseConnections] = useState([])
 
-  const userLoc     = useUserLocation(session?.user?.id, { ghostMode })
+  const userLoc      = useUserLocation(session?.user?.id, { ghostMode })
   const profileCache = useRef({})
   const userLocRef   = useRef(null)
   const didFetch     = useRef(false)
@@ -262,6 +372,58 @@ export default function MapScreen() {
     return () => supabase.removeChannel(ch)
   }, [session, processLoc])
 
+  // ── Close connections: fetch + keep updated ───────────────────────────────
+  const loadCloseConnections = useCallback(async () => {
+    const myId = session?.user?.id
+    if (!myId) return
+    const { data: reqs } = await supabase
+      .from('close_requests')
+      .select('*')
+      .eq('status', 'accepted')
+      .or(`from_id.eq.${myId},to_id.eq.${myId}`)
+    if (!reqs) return
+
+    const results = []
+    for (const req of reqs) {
+      const otherId = req.from_id === myId ? req.to_id : req.from_id
+      if (!profileCache.current[otherId]) {
+        const { data } = await supabase.from('profiles').select('*').eq('id', otherId).single()
+        if (data) profileCache.current[otherId] = data
+      }
+      const prof = profileCache.current[otherId]
+      const { data: loc } = await supabase.from('locations').select('*').eq('user_id', otherId).maybeSingle()
+      if (prof && loc) {
+        results.push({
+          id: otherId, name: prof.username || 'Close friend',
+          lat: loc.lat, lng: loc.lng, distance: null,
+          avatar: prof.avatar_config || {}, extras: prof.avatar_extras || [],
+          isClose: true,
+        })
+      }
+    }
+    setCloseConnections(results)
+  }, [session])
+
+  useEffect(() => { loadCloseConnections() }, [loadCloseConnections])
+
+  useEffect(() => {
+    if (!session) return
+    const ch = supabase
+      .channel('close-locs-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'close_requests' },
+        () => loadCloseConnections())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'locations' },
+        () => loadCloseConnections())
+      .subscribe()
+    return () => supabase.removeChannel(ch)
+  }, [session, loadCloseConnections])
+
+  const handleHi = async (user) => {
+    const myId = session?.user?.id
+    if (!myId) return
+    await supabase.from('hi_waves').insert({ from_id: myId, to_id: user.id })
+  }
+
   const handlePing = (user) => {
     setSelectedUser(null)
     navigate(`/chat/${user.id}`, { state: { user } })
@@ -281,6 +443,7 @@ export default function MapScreen() {
         <LiveMap
           userLoc={userLoc}
           nearbyUsers={nearbyUsers}
+          closeConnections={closeConnections}
           myProfile={profile}
           onUserClick={setSelectedUser}
           ghostMode={ghostMode}
@@ -322,7 +485,7 @@ export default function MapScreen() {
         </button>
 
         {selectedUser && (
-          <ProfileSheet user={selectedUser} onClose={() => setSelectedUser(null)} onPing={handlePing} />
+          <ProfileSheet user={selectedUser} onClose={() => setSelectedUser(null)} onPing={handlePing} onHi={handleHi} />
         )}
       </div>
 
