@@ -5,24 +5,27 @@ const UPSERT_INTERVAL_MS = 5000
 
 /**
  * Tracks the user's GPS position and pushes it to Supabase every 5 seconds.
- * Ghost mode prevents location from being shared.
- *
- * @param {string|null} userId  - auth user ID
- * @param {{ ghostMode?: boolean }} options
- * @returns {{ lat: number, lng: number } | null}
+ * Ghost mode: stops sharing AND deletes the existing location row so others
+ * stop seeing the user immediately.
  */
 export function useUserLocation(userId, { ghostMode = false } = {}) {
   const [location, setLocation] = useState(null)
   const currentLoc = useRef(null)
   const ghostRef   = useRef(ghostMode)
+  const prevGhost  = useRef(ghostMode)
 
-  // Keep ghostRef in sync so the interval always reads the latest value
-  useEffect(() => { ghostRef.current = ghostMode }, [ghostMode])
+  // When ghost mode turns ON → delete our row from the locations table
+  useEffect(() => {
+    ghostRef.current = ghostMode
+    if (ghostMode && !prevGhost.current && userId) {
+      supabase.from('locations').delete().eq('user_id', userId)
+    }
+    prevGhost.current = ghostMode
+  }, [ghostMode, userId])
 
   useEffect(() => {
     if (!userId) return
 
-    // Continuous GPS watch (fires whenever the device reports a new position)
     const watchId = navigator.geolocation.watchPosition(
       ({ coords }) => {
         const loc = { lat: coords.latitude, lng: coords.longitude }
@@ -33,7 +36,6 @@ export function useUserLocation(userId, { ghostMode = false } = {}) {
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
     )
 
-    // Push to Supabase every 5 s (decoupled from GPS events)
     const timer = setInterval(() => {
       if (ghostRef.current || !currentLoc.current) return
       supabase.from('locations').upsert({
@@ -44,11 +46,15 @@ export function useUserLocation(userId, { ghostMode = false } = {}) {
       })
     }, UPSERT_INTERVAL_MS)
 
+    // On logout/unmount: delete our location row so we disappear immediately
     return () => {
       navigator.geolocation.clearWatch(watchId)
       clearInterval(timer)
+      if (!ghostRef.current) {
+        supabase.from('locations').delete().eq('user_id', userId)
+      }
     }
-  }, [userId]) // re-run only if userId changes (login/logout)
+  }, [userId])
 
   return location
 }
