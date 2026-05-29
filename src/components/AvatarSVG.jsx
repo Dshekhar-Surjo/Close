@@ -312,7 +312,11 @@ export const AVATAR_DEFAULTS = {
   topColorIndex:       0,
   accessoryColorIndex: 0,
   gender:              'neutral',
+  build:               'average',
 }
+
+// Build → horizontal body scale (centred on x=24)
+const BUILD_SCALE = { slim: 0.78, average: 1, athletic: 1.12, plus: 1.3 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function AvatarSVG({ config = {}, extras = [], size = 64 }) {
@@ -322,12 +326,14 @@ export default function AvatarSVG({ config = {}, extras = [], size = 64 }) {
   const topColor   = TOP_COLORS[cfg.topColorIndex]       ?? TOP_COLORS[0]
   const accentColor = ACCESSORY_COLORS[cfg.accessoryColorIndex] ?? ACCESSORY_COLORS[0]
 
-  const faceShape = FACE_SHAPES[cfg.faceShapeIndex] ?? 'oval'
-  const faceFn    = FACE_PATHS[faceShape]
-  const hairFn    = HAIR_PATHS[cfg.hairStyle] ?? HAIR_PATHS.short
-  const topFn     = TOPS[cfg.topStyle]        ?? TOPS.casual
+  const faceShape  = FACE_SHAPES[cfg.faceShapeIndex] ?? 'oval'
+  const faceFn     = FACE_PATHS[faceShape]
+  const hairFn     = HAIR_PATHS[cfg.hairStyle] ?? HAIR_PATHS.short
+  const topFn      = TOPS[cfg.topStyle]        ?? TOPS.casual
+  const bodyScale  = BUILD_SCALE[cfg.build]    ?? 1
+  const bodyXform  = `translate(24,0) scale(${bodyScale},1) translate(-24,0)`
 
-  const headwear  = extras.filter(e => e === 'Cap' || e === 'Beanie')
+  const headwear    = extras.filter(e => e === 'Cap' || e === 'Beanie')
   const otherExtras = extras.filter(e => e !== 'Cap' && e !== 'Beanie')
 
   return (
@@ -352,6 +358,26 @@ export default function AvatarSVG({ config = {}, extras = [], size = 64 }) {
       <circle cx="20" cy="24" r="1.5" fill="rgba(0,0,0,0.5)" />
       <circle cx="28" cy="24" r="1.5" fill="rgba(0,0,0,0.5)" />
 
+      {/* Gender — feminine: eyelashes */}
+      {(cfg.gender === 'feminine' || cfg.gender === 'non-binary') && (
+        <g stroke="rgba(0,0,0,0.45)" strokeWidth="0.7" strokeLinecap="round">
+          <line x1="18.5" y1="22.8" x2="18"   y2="21.8" />
+          <line x1="20"   y1="22.3" x2="20"   y2="21.3" />
+          <line x1="21.5" y1="22.8" x2="21.8" y2="21.8" />
+          <line x1="26.5" y1="22.8" x2="26.2" y2="21.8" />
+          <line x1="28"   y1="22.3" x2="28"   y2="21.3" />
+          <line x1="29.5" y1="22.8" x2="30"   y2="21.8" />
+        </g>
+      )}
+
+      {/* Gender — masculine: thicker brows */}
+      {cfg.gender === 'masculine' && (
+        <g>
+          <rect x="17" y="20.5" width="6.5" height="1.5" rx="0.75" fill="rgba(0,0,0,0.35)" />
+          <rect x="24.5" y="20.5" width="6.5" height="1.5" rx="0.75" fill="rgba(0,0,0,0.35)" />
+        </g>
+      )}
+
       {/* Smile */}
       <path d="M21 29 Q24 32 27 29"
         stroke="rgba(0,0,0,0.3)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
@@ -369,11 +395,11 @@ export default function AvatarSVG({ config = {}, extras = [], size = 64 }) {
       {extras.includes('Glasses')    && ACCESSORY_RENDERERS.Glasses()}
       {extras.includes('Sunglasses') && ACCESSORY_RENDERERS.Sunglasses()}
 
-      {/* Neck */}
-      <rect x="20" y="37" width="8" height="5" fill={skin} />
-
-      {/* Outfit */}
-      {topFn(topColor)}
+      {/* Neck + outfit scaled by build */}
+      <g transform={bodyXform}>
+        <rect x="20" y="37" width="8" height="5" fill={skin} />
+        {topFn(topColor)}
+      </g>
 
       {/* Headwear on top of hair */}
       {headwear.map(h => (
