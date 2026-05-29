@@ -8,6 +8,9 @@ export function AppProvider({ children }) {
   const [session, setSession] = useState(undefined)
   // undefined = still loading | null = no profile yet | object = has profile
   const [profile, setProfile] = useState(undefined)
+  // Shared map settings (accessible from both MapScreen and MeScreen)
+  const [ghostMode,        setGhostMode]        = useState(false)
+  const [visibilityRadius, setVisibilityRadius] = useState(100)
 
   async function loadProfile(userId) {
     const { data } = await supabase
@@ -50,7 +53,7 @@ export function AppProvider({ children }) {
   const logout = () => supabase.auth.signOut()
 
   return (
-    <AppCtx.Provider value={{ session, profile, setProfile, loadProfile, logout }}>
+    <AppCtx.Provider value={{ session, profile, setProfile, loadProfile, logout, ghostMode, setGhostMode, visibilityRadius, setVisibilityRadius }}>
       {children}
     </AppCtx.Provider>
   )
