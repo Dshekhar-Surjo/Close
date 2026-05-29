@@ -35,8 +35,12 @@ export function AppProvider({ children }) {
     })
 
     // React to login / logout / token refresh
+    // Skip INITIAL_SESSION — getSession() above handles the initial state.
+    // Without this skip, an INITIAL_SESSION with null (fired before OAuth code
+    // exchange completes) would flash the auth screen after Google sign-in.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        if (event === 'INITIAL_SESSION') return
         setSession(session ?? null)
         if (session) {
           setProfile(undefined) // reset to loading while we fetch
