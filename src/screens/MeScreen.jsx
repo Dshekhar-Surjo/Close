@@ -156,7 +156,7 @@ export default function MeScreen() {
 
         {/* Map attribution note */}
         <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', textAlign: 'center', marginTop: 16, lineHeight: 1.5 }}>
-          Map tiles © <a href="https://carto.com" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.3)' }}>CARTO</a> &amp; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.3)' }}>OpenStreetMap</a> contributors
+          Map tiles © <a href="https://openfreemap.org" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.3)' }}>OpenFreeMap</a> &amp; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" style={{ color: 'rgba(255,255,255,0.3)' }}>OpenStreetMap</a> contributors
         </p>
 
       </div>

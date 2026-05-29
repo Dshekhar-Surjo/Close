@@ -8,8 +8,8 @@ import BottomNav from '../components/BottomNav'
 import CloseLogo from '../components/CloseLogo'
 import AvatarSVG from '../components/AvatarSVG'
 
-// Free dark map — no API key needed
-const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+// Dark map with road + building labels — no API key needed
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/dark'
 
 // ─── Haversine distance ───────────────────────────────────────────────────────
 function haversineM(lat1, lng1, lat2, lng2) {
@@ -63,10 +63,17 @@ function LiveMap({ userLoc, nearbyUsers, closeConnections, myProfile, onUserClic
     let map
     import('maplibre-gl').then(({ default: mgl }) => {
       const loc = userLocRef.current
+      // Fall back to last known position (survives phone lock) before GPS fires
+      const saved = (() => { try { return JSON.parse(sessionStorage.getItem('lastKnownLocation')) } catch { return null } })()
+      const initialCenter = loc
+        ? [loc.lng, loc.lat]
+        : saved
+          ? [saved.lng, saved.lat]
+          : [77.209, 28.614] // last resort
       map = new mgl.Map({
         container:        containerRef.current,
         style:            MAP_STYLE,
-        center:           loc ? [loc.lng, loc.lat] : [77.209, 28.614],
+        center:           initialCenter,
         zoom:             17,
         attributionControl: false,
       })
