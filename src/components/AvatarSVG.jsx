@@ -219,25 +219,39 @@ const TOPS = {
         </g>
   ),
 
-  kameez: (c, g, full) => (
-    // South-Asian tunic — slightly longer, side slits, 3/4 sleeves
-    <g>
-      <rect x="12" y="36" width="24" height="32" rx="4" fill={c} />
-      {/* Side slit cuts */}
-      <rect x="12" y="60" width="4" height="8" rx="0" fill="rgba(0,0,0,0.18)" />
-      <rect x="32" y="60" width="4" height="8" rx="0" fill="rgba(0,0,0,0.18)" />
-      {/* Neckline */}
-      <path d="M21 36 Q24 42 27 36" stroke="rgba(255,255,255,0.2)" strokeWidth="1" fill="none" />
-      {full && <>
-        {/* 3/4 sleeves */}
-        <rect x="7"  y="40" width="7" height="18" rx="3" fill={c} />
-        <rect x="34" y="40" width="7" height="18" rx="3" fill={c} />
-        {/* Cuff trim */}
-        <rect x="7"  y="55" width="7" height="3" rx="1.5" fill="rgba(255,255,255,0.18)" />
-        <rect x="34" y="55" width="7" height="3" rx="1.5" fill="rgba(255,255,255,0.18)" />
-      </>}
-    </g>
-  ),
+  kameez: (c, g, full) => {
+    // Long A-line kurti reaching mid-calf — covers the legs when fullBody=true
+    // Pairs with salwar/churidar bottom (ankles visible below hem)
+    const trim = 'rgba(218,165,32,0.65)'
+    return (
+      <g>
+        {/* Main long body — straight sides, slight flare at hem */}
+        <path d="M15 40 L13 80 Q13 85 24 85 Q35 85 35 80 L33 40 Z" fill={c} />
+        {/* Decorative yoke panel at chest */}
+        <rect x="15" y="40" width="18" height="9" rx="1" fill="rgba(0,0,0,0.18)" />
+        <rect x="15" y="49" width="18" height="1" fill={trim} />
+        {/* Mandarin / band collar */}
+        <rect x="20" y="33" width="8" height="8" rx="2" fill={c} />
+        <rect x="20" y="33" width="8" height="1.5" rx="0.75" fill={trim} />
+        {/* Centre closure line */}
+        <line x1="24" y1="40" x2="24" y2="49" stroke="rgba(255,255,255,0.3)" strokeWidth="0.8" />
+        {/* Hem border */}
+        <rect x="13" y="80" width="22" height="3"   rx="0" fill={trim} />
+        <rect x="13" y="82" width="22" height="0.8" rx="0" fill="rgba(255,255,255,0.2)" />
+        {/* Side slits */}
+        <rect x="13" y="76" width="2" height="8" fill="rgba(0,0,0,0.25)" />
+        <rect x="33" y="76" width="2" height="8" fill="rgba(0,0,0,0.25)" />
+        {full && <>
+          {/* 3/4 sleeves */}
+          <rect x="7"  y="40" width="7.5" height="17" rx="3" fill={c} />
+          <rect x="33.5" y="40" width="7.5" height="17" rx="3" fill={c} />
+          {/* Cuff trim */}
+          <rect x="7"    y="54" width="7.5" height="3" rx="1.5" fill={trim} />
+          <rect x="33.5" y="54" width="7.5" height="3" rx="1.5" fill={trim} />
+        </>}
+      </g>
+    )
+  },
 
   shawl: (c, g, full) => (
     <g>
@@ -336,29 +350,44 @@ const BOTTOMS = {
     </g>
   ),
 
-  saree: (c, skin) => (
-    <g>
-      {/* Petticoat */}
-      <path d="M14 65 Q9 77 7 90 L41 90 Q39 77 34 65 Z" fill={c} opacity="0.75" />
-      {/* Pleats on front */}
-      <line x1="17" y1="65" x2="15" y2="90" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="20" y1="65" x2="18" y2="90" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="23" y1="65" x2="21" y2="90" stroke={c} strokeWidth="1.5" strokeLinecap="round" />
-      {/* Pallu drape hint going diagonally up — overlay onto torso */}
-      <path d="M36 38 Q30 52 28 65 L32 65 Q34 52 40 40 Z" fill={c} opacity="0.55" />
-    </g>
-  ),
+  saree: (c, skin) => {
+    // Renders the skirt portion only.
+    // The pallu drape is rendered AFTER the top via SAREE_PALLU() in the component.
+    const gold = 'rgba(218,165,32,0.65)'
+    return (
+      <g>
+        {/* Bare midriff strip between blouse and saree waist */}
+        <rect x="13" y="52" width="22" height="5" fill={skin} />
+        {/* Main wrapped skirt — straight fall from waist */}
+        <path d="M14 57 L12 91 L36 91 L34 57 Z" fill={c} />
+        {/* Right side — the wrap tuck fold */}
+        <path d="M30 57 L32 91 L36 91 L34 57 Z" fill="rgba(0,0,0,0.12)" />
+        {/* Front pleats (tucker folds) */}
+        <line x1="18" y1="57" x2="17" y2="91" stroke="rgba(255,255,255,0.13)" strokeWidth="1" />
+        <line x1="21" y1="57" x2="20" y2="91" stroke="rgba(255,255,255,0.11)" strokeWidth="1" />
+        <line x1="24" y1="57" x2="23" y2="91" stroke="rgba(255,255,255,0.09)" strokeWidth="1" />
+        {/* Decorative gold border at hem */}
+        <rect x="12" y="87" width="24" height="4" rx="0" fill={gold} />
+        <line x1="12" y1="88.5" x2="36" y2="88.5" stroke="rgba(255,255,255,0.25)" strokeWidth="0.5" />
+        {/* Waist tuck detail */}
+        <rect x="13" y="57" width="21" height="2" rx="1" fill="rgba(0,0,0,0.2)" />
+      </g>
+    )
+  },
 
   salwar: (c, skin) => (
+    // Wide patiala/salwar — when paired with kameez top, only ankles show below hem
     <g>
-      {/* Wide-cut legs */}
-      <path d="M12 65 Q11 77 13 87 L22 87 Q21 77 20 65 Z" fill={c} />
-      <path d="M36 65 Q37 77 35 87 L26 87 Q27 77 28 65 Z" fill={c} />
+      {/* Wide legs */}
+      <path d="M12 65 Q10 77 13 87 L22 87 Q21 77 20 65 Z" fill={c} />
+      <path d="M36 65 Q38 77 35 87 L26 87 Q27 77 28 65 Z" fill={c} />
       {/* Crotch fill */}
-      <path d="M20 65 Q24 70 28 65 L28 68 Q24 73 20 68 Z" fill={c} />
-      {/* Ankle trim */}
-      <rect x="13" y="83" width="9" height="4" rx="2" fill="rgba(255,255,255,0.2)" />
-      <rect x="26" y="83" width="9" height="4" rx="2" fill="rgba(255,255,255,0.2)" />
+      <path d="M20 65 Q24 70 28 65 L28 69 Q24 74 20 69 Z" fill={c} />
+      {/* Ankle bands (churidar-style gathers) */}
+      <rect x="13" y="83" width="9" height="2" rx="1" fill="rgba(255,255,255,0.2)" />
+      <rect x="13" y="85" width="9" height="2" rx="1" fill="rgba(255,255,255,0.15)" />
+      <rect x="26" y="83" width="9" height="2" rx="1" fill="rgba(255,255,255,0.2)" />
+      <rect x="26" y="85" width="9" height="2" rx="1" fill="rgba(255,255,255,0.15)" />
     </g>
   ),
 
@@ -388,6 +417,25 @@ const BOTTOMS = {
       <line x1="20" y1="65" x2="19" y2="87" stroke="rgba(255,255,255,0.1)" strokeWidth="0.8" />
     </g>
   ),
+}
+
+// ─── Saree pallu — rendered AFTER the top so it drapes over the blouse ───────
+// The pallu is the loose end of the saree draped over the left shoulder.
+function SAREE_PALLU(c) {
+  const gold = 'rgba(218,165,32,0.65)'
+  return (
+    <g>
+      {/* Pallu hanging down from left shoulder */}
+      <path d="M10 40 Q9 55 9 72 L13 72 Q13 55 14 40 Z" fill={c} opacity="0.65" />
+      {/* Pallu crossing the chest from right shoulder to left */}
+      <path d="M34 40 Q28 46 20 57 L22 57 Q30 46 36 40 Z" fill={c} opacity="0.6" />
+      {/* Gold border along pallu edge */}
+      <path d="M34 40 Q28 46 20 57" stroke={gold} strokeWidth="1.2" fill="none" />
+      <path d="M10 40 Q9 55 9 72" stroke={gold} strokeWidth="1.2" fill="none" />
+      {/* Pallu hem at bottom */}
+      <line x1="9" y1="71" x2="13" y2="71" stroke={gold} strokeWidth="1" />
+    </g>
+  )
 }
 
 // ─── Beards ───────────────────────────────────────────────────────────────────
@@ -581,17 +629,20 @@ export default function AvatarSVG({ config = {}, extras = [], size = 64, fullBod
           <ellipse cx="36" cy="65" rx="3.5" ry="2.5" fill={skin} />
         </>}
 
-        {/* Top (torso + sleeve overlays) */}
-        {topFn(topColor, cfg.gender, fullBody)}
-
-        {/* Leg skin bases */}
+        {/* Leg skin bases (before bottom so bottom overlays cleanly) */}
         {fullBody && <>
           <rect x="15" y="65" width="8" height="22" rx="3" fill={skin} />
           <rect x="25" y="65" width="8" height="22" rx="3" fill={skin} />
         </>}
 
-        {/* Bottom style */}
+        {/* Bottom style — rendered BEFORE top so long tops (kameez) cover it */}
         {fullBody && bottomFn(bottomColor, skin)}
+
+        {/* Top (torso + sleeve overlays) — renders over bottom */}
+        {topFn(topColor, cfg.gender, fullBody)}
+
+        {/* Saree pallu — rendered AFTER top so it drapes over the blouse */}
+        {fullBody && cfg.bottomStyle === 'saree' && SAREE_PALLU(bottomColor)}
 
         {/* Shoes */}
         {fullBody && <>
