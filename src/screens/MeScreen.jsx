@@ -12,9 +12,10 @@ export default function MeScreen() {
   const avatarConfig = profile?.avatar_config || {}
   const avatarExtras = profile?.avatar_extras  || []
 
-  const [pingsOn,       setPingsOn]       = useState(true)
-  const [privacyOpen,   setPrivacyOpen]   = useState(false)
-  const [pingPolicy,    setPingPolicy]    = useState('everyone') // 'everyone' | 'approved' | 'nobody'
+  const [pingsOn,      setPingsOn]      = useState(true)
+  const [privacyOpen,  setPrivacyOpen]  = useState(false)
+  const [radiusOpen,   setRadiusOpen]   = useState(false)
+  const [pingPolicy,   setPingPolicy]   = useState('everyone') // 'everyone' | 'approved' | 'nobody'
 
   const handleLogout = async () => { await logout() }
 
@@ -72,31 +73,37 @@ export default function MeScreen() {
           <Toggle on={ghostMode} onToggle={() => setGhostMode(g => !g)} />
         </SettingRow>
 
-        {/* ── Visibility radius ── */}
-        <div style={{ padding: '14px 0', borderBottom: '0.5px solid var(--border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+        {/* ── Visibility radius (collapsible) ── */}
+        <div style={{ borderBottom: '0.5px solid var(--border)' }}>
+          <button onClick={() => setRadiusOpen(o => !o)} style={{
+            width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', textAlign: 'left',
+          }}>
             <span style={{ fontSize: 20, width: 28, textAlign: 'center' }}>◎</span>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, color: '#fff' }}>Visibility radius</div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 1 }}>
-                {visibilityRadius}m — see users within this distance
+                {visibilityRadius}m — see &amp; interact within this distance
               </div>
             </div>
-          </div>
-          <div style={{ paddingLeft: 40 }}>
-            <input
-              type="range"
-              min={10}
-              max={500}
-              step={10}
-              value={visibilityRadius}
-              onChange={e => setVisibilityRadius(Number(e.target.value))}
-              style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
-              <span>10m</span><span>500m</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: 14, transform: radiusOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}>›</span>
+          </button>
+
+          {radiusOpen && (
+            <div style={{ paddingLeft: 40, paddingBottom: 14 }}>
+              <input
+                type="range" min={10} max={500} step={10}
+                value={visibilityRadius}
+                onChange={e => setVisibilityRadius(Number(e.target.value))}
+                onMouseUp={() => setRadiusOpen(false)}
+                onTouchEnd={() => setRadiusOpen(false)}
+                style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
+                <span>10m</span><span style={{ fontWeight: 600, color: 'var(--accent)' }}>{visibilityRadius}m</span><span>500m</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* ── Ping notifications ── */}
@@ -104,7 +111,7 @@ export default function MeScreen() {
           <Toggle on={pingsOn} onToggle={() => setPingsOn(p => !p)} />
         </SettingRow>
 
-        {/* ── Privacy ── */}
+        {/* ── Privacy (collapsible, auto-closes on selection) ── */}
         <div style={{ borderBottom: '0.5px solid var(--border)' }}>
           <button onClick={() => setPrivacyOpen(o => !o)} style={{
             width: '100%', background: 'none', border: 'none', cursor: 'pointer',
@@ -123,7 +130,7 @@ export default function MeScreen() {
           {privacyOpen && (
             <div style={{ paddingLeft: 40, paddingBottom: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {PING_POLICIES.map(p => (
-                <button key={p.key} onClick={() => setPingPolicy(p.key)} style={{
+                <button key={p.key} onClick={() => { setPingPolicy(p.key); setPrivacyOpen(false) }} style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   background: pingPolicy === p.key ? 'rgba(127,119,221,0.15)' : 'rgba(255,255,255,0.03)',
                   border: `0.5px solid ${pingPolicy === p.key ? 'var(--accent-border)' : 'rgba(255,255,255,0.08)'}`,
