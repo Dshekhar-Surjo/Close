@@ -33,7 +33,12 @@ export default function NearbyScreen() {
     const myLoc = userLocRef.current
     if (!myId || !myLoc) return
 
-    const { data: locs } = await supabase.from('locations').select('*')
+    // Bounding box ≈ ±0.02° (~2 km) keeps the query small
+    const pad = 0.02
+    const { data: locs } = await supabase
+      .from('locations').select('*')
+      .gte('lat', myLoc.lat - pad).lte('lat', myLoc.lat + pad)
+      .gte('lng', myLoc.lng - pad).lte('lng', myLoc.lng + pad)
     if (!locs) return
 
     const results = []
