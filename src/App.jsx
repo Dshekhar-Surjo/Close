@@ -1,13 +1,18 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AppProvider, useApp } from './context/AppContext'
+
+// Eagerly loaded — needed before/during auth
 import SplashScreen        from './screens/SplashScreen'
 import AuthScreen          from './screens/AuthScreen'
 import AvatarCreatorScreen from './screens/AvatarCreatorScreen'
 import MapScreen           from './screens/MapScreen'
-import NearbyScreen        from './screens/NearbyScreen'
-import PingsScreen         from './screens/PingsScreen'
-import ChatScreen          from './screens/ChatScreen'
-import MeScreen            from './screens/MeScreen'
+
+// Lazy-loaded — fetched only when the user first navigates there
+const NearbyScreen = lazy(() => import('./screens/NearbyScreen'))
+const PingsScreen  = lazy(() => import('./screens/PingsScreen'))
+const ChatScreen   = lazy(() => import('./screens/ChatScreen'))
+const MeScreen     = lazy(() => import('./screens/MeScreen'))
 
 function Spinner() {
   return (
@@ -28,10 +33,8 @@ function Spinner() {
 function AppRoutes() {
   const { session, profile } = useApp()
 
-  // Still reading session from Supabase storage — show a spinner
   if (session === undefined) return <Spinner />
 
-  // Not logged in → only splash + auth are accessible
   if (!session) {
     return (
       <Routes>
@@ -42,26 +45,25 @@ function AppRoutes() {
     )
   }
 
-  // Profile still fetching
   if (profile === undefined) return <Spinner />
 
-  // No profile yet (new user) or avatar not set up → go to avatar creator
   if (!profile || !profile.avatar_config || Object.keys(profile.avatar_config).length === 0) {
     return <AvatarCreatorScreen />
   }
 
-  // Fully authenticated with a saved avatar
   return (
-    <Routes>
-      <Route path="/"               element={<Navigate to="/map" replace />} />
-      <Route path="/map"            element={<MapScreen />} />
-      <Route path="/avatar-creator" element={<AvatarCreatorScreen />} />
-      <Route path="/nearby"         element={<NearbyScreen />} />
-      <Route path="/pings"          element={<PingsScreen />} />
-      <Route path="/chat/:id"       element={<ChatScreen />} />
-      <Route path="/me"             element={<MeScreen />} />
-      <Route path="*"               element={<Navigate to="/map" replace />} />
-    </Routes>
+    <Suspense fallback={<Spinner />}>
+      <Routes>
+        <Route path="/"               element={<Navigate to="/map" replace />} />
+        <Route path="/map"            element={<MapScreen />} />
+        <Route path="/avatar-creator" element={<AvatarCreatorScreen />} />
+        <Route path="/nearby"         element={<NearbyScreen />} />
+        <Route path="/pings"          element={<PingsScreen />} />
+        <Route path="/chat/:id"       element={<ChatScreen />} />
+        <Route path="/me"             element={<MeScreen />} />
+        <Route path="*"               element={<Navigate to="/map" replace />} />
+      </Routes>
+    </Suspense>
   )
 }
 
