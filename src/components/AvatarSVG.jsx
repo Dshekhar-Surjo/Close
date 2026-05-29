@@ -160,72 +160,147 @@ export const TOP_STYLES = [
   'crop', 'suit',
 ]
 
+// Each top fn receives (color, gender). Gender can be 'feminine'|'masculine'|'neutral'|'fluid'.
+// Feminine variants are more fitted/flared; masculine variants are broader/boxier.
 const TOPS = {
-  casual: (color) => (
-    <rect x="12" y="38" width="24" height="26" rx="4" fill={color} />
-  ),
-  formal: (color) => (
-    <g>
-      <rect x="12" y="38" width="24" height="26" rx="4" fill={color} />
-      <rect x="21" y="38" width="6" height="26" fill="rgba(255,255,255,0.15)" />
-      <rect x="22" y="44" width="4" height="2" rx="1" fill="rgba(255,255,255,0.3)" />
-      <rect x="22" y="50" width="4" height="2" rx="1" fill="rgba(255,255,255,0.3)" />
-    </g>
-  ),
-  sporty: (color) => (
-    <g>
-      <rect x="12" y="38" width="24" height="26" rx="4" fill={color} />
-      <rect x="12" y="44" width="24" height="3" fill="rgba(255,255,255,0.25)" />
-      <rect x="12" y="56" width="24" height="3" fill="rgba(255,255,255,0.25)" />
-    </g>
-  ),
-  hoodie: (color) => (
-    <g>
-      <rect x="11" y="38" width="26" height="26" rx="5" fill={color} />
-      <path d="M18 38 Q24 48 30 38" stroke="rgba(255,255,255,0.25)" strokeWidth="2" fill="none" />
-      <rect x="20" y="50" width="8" height="5" rx="2" fill="rgba(255,255,255,0.1)" />
-    </g>
-  ),
+  casual: (color, g) => g === 'feminine'
+    ? <g>
+        <path d="M14 38 Q14 34 24 34 Q34 34 34 38 L35 64 Q30 66 24 66 Q18 66 13 64 Z" fill={color} />
+        <path d="M13 64 Q18 70 24 70 Q30 70 35 64" fill={color} />
+      </g>
+    : <rect x="12" y="38" width="24" height="26" rx="4" fill={color} />,
+
+  formal: (color, g) => g === 'feminine'
+    ? <g>
+        {/* Fitted blouse */}
+        <path d="M15 38 Q15 36 24 36 Q33 36 33 38 L34 64 Q29 66 24 66 Q19 66 14 64 Z" fill={color} />
+        {/* V-neck detail */}
+        <path d="M20 38 L24 46 L28 38" stroke="rgba(255,255,255,0.4)" strokeWidth="1" fill="none" />
+        <rect x="22" y="50" width="4" height="1.5" rx="0.75" fill="rgba(255,255,255,0.3)" />
+        <rect x="22" y="55" width="4" height="1.5" rx="0.75" fill="rgba(255,255,255,0.3)" />
+      </g>
+    : <g>
+        {/* Dress shirt */}
+        <rect x="12" y="38" width="24" height="26" rx="4" fill={color} />
+        <rect x="21" y="38" width="6" height="26" fill="rgba(255,255,255,0.15)" />
+        <rect x="22" y="44" width="4" height="2" rx="1" fill="rgba(255,255,255,0.3)" />
+        <rect x="22" y="50" width="4" height="2" rx="1" fill="rgba(255,255,255,0.3)" />
+        {/* Tie */}
+        <path d="M23 38 L22.5 48 L24 51 L25.5 48 L25 38 Z" fill="#A32D2D" opacity="0.9" />
+      </g>,
+
+  sporty: (color, g) => g === 'feminine'
+    ? <g>
+        {/* Fitted jersey */}
+        <path d="M15 38 Q15 36 24 36 Q33 36 33 38 L33 60 Q29 63 24 63 Q19 63 15 60 Z" fill={color} />
+        <path d="M15 44 L33 44" stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
+        {/* Mini skirt flare */}
+        <path d="M15 60 Q12 64 10 68 L38 68 Q36 64 33 60 Z" fill={color} />
+      </g>
+    : <g>
+        <rect x="12" y="38" width="24" height="26" rx="4" fill={color} />
+        <rect x="12" y="44" width="24" height="3" fill="rgba(255,255,255,0.25)" />
+        <rect x="12" y="56" width="24" height="3" fill="rgba(255,255,255,0.25)" />
+      </g>,
+
+  hoodie: (color, g) => g === 'feminine'
+    ? <g>
+        {/* Cropped hoodie */}
+        <rect x="13" y="38" width="22" height="20" rx="5" fill={color} />
+        <path d="M18 38 Q24 46 30 38" stroke="rgba(255,255,255,0.25)" strokeWidth="2" fill="none" />
+        <rect x="20" y="48" width="8" height="5" rx="2" fill="rgba(255,255,255,0.1)" />
+      </g>
+    : <g>
+        <rect x="11" y="38" width="26" height="26" rx="5" fill={color} />
+        <path d="M18 38 Q24 48 30 38" stroke="rgba(255,255,255,0.25)" strokeWidth="2" fill="none" />
+        <rect x="20" y="50" width="8" height="5" rx="2" fill="rgba(255,255,255,0.1)" />
+      </g>,
+
   dress: (color) => (
+    // Always feminine regardless of gender setting — full A-line dress
     <g>
-      <rect x="15" y="38" width="18" height="12" rx="3" fill={color} />
-      <path d="M11 50 L9 64 L39 64 L37 50 Z" fill={color} />
+      <rect x="16" y="38" width="16" height="10" rx="3" fill={color} />
+      {/* A-line skirt */}
+      <path d="M13 48 L9 68 L39 68 L35 48 Z" fill={color} />
+      {/* Waist seam */}
+      <rect x="13" y="47" width="22" height="2" rx="1" fill="rgba(255,255,255,0.2)" />
     </g>
   ),
-  jacket: (color) => (
-    <g>
-      <rect x="11" y="38" width="26" height="26" rx="4" fill={color} />
-      <path d="M20 38 L24 48 L28 38" fill="rgba(255,255,255,0.2)" />
-      <circle cx="24" cy="52" r="1" fill="rgba(255,255,255,0.4)" />
-      <circle cx="24" cy="57" r="1" fill="rgba(255,255,255,0.4)" />
-      <circle cx="24" cy="62" r="1" fill="rgba(255,255,255,0.4)" />
-    </g>
-  ),
-  tank: (color) => (
-    <g>
-      <rect x="16" y="38" width="16" height="26" rx="3" fill={color} />
-      <rect x="16" y="34" width="4" height="7"  rx="2" fill={color} />
-      <rect x="28" y="34" width="4" height="7"  rx="2" fill={color} />
-    </g>
-  ),
-  turtleneck: (color) => (
-    <g>
-      <rect x="12" y="38" width="24" height="26" rx="4" fill={color} />
-      <rect x="18" y="33" width="12" height="9"  rx="5" fill={color} />
-    </g>
-  ),
-  crop: (color) => (
-    <rect x="13" y="38" width="22" height="14" rx="4" fill={color} />
-  ),
-  suit: (color) => (
-    <g>
-      <rect x="11" y="38" width="26" height="26" rx="4" fill={color} />
-      <path d="M21 38 L17 50 L24 48 L31 50 L27 38"
-        fill={color} stroke="rgba(255,255,255,0.3)" strokeWidth="0.5" />
-      <path d="M21 38 L24 48 L27 38" fill="rgba(255,255,255,0.55)" />
-      <path d="M23 40 L24 50 L25 40" fill="#A32D2D" />
-    </g>
-  ),
+
+  jacket: (color, g) => g === 'feminine'
+    ? <g>
+        {/* Blazer - fitted */}
+        <path d="M14 38 Q14 35 24 35 Q34 35 34 38 L34 64 Q29 66 24 66 Q19 66 14 64 Z" fill={color} />
+        <path d="M20 38 L24 46 L28 38" fill="rgba(255,255,255,0.25)" />
+        <circle cx="24" cy="54" r="1" fill="rgba(255,255,255,0.4)" />
+        <circle cx="24" cy="60" r="1" fill="rgba(255,255,255,0.4)" />
+      </g>
+    : <g>
+        <rect x="11" y="38" width="26" height="26" rx="4" fill={color} />
+        <path d="M20 38 L24 48 L28 38" fill="rgba(255,255,255,0.2)" />
+        <circle cx="24" cy="52" r="1" fill="rgba(255,255,255,0.4)" />
+        <circle cx="24" cy="57" r="1" fill="rgba(255,255,255,0.4)" />
+        <circle cx="24" cy="62" r="1" fill="rgba(255,255,255,0.4)" />
+      </g>,
+
+  tank: (color, g) => g === 'feminine'
+    ? <g>
+        {/* Fitted tank with wider straps */}
+        <rect x="15" y="38" width="18" height="22" rx="3" fill={color} />
+        <rect x="15" y="34" width="5" height="7" rx="2.5" fill={color} />
+        <rect x="28" y="34" width="5" height="7" rx="2.5" fill={color} />
+        {/* Waist taper */}
+        <path d="M15 55 Q24 58 33 55 L33 60 Q24 63 15 60 Z" fill={color} />
+      </g>
+    : <g>
+        <rect x="16" y="38" width="16" height="26" rx="3" fill={color} />
+        <rect x="16" y="34" width="4" height="7" rx="2" fill={color} />
+        <rect x="28" y="34" width="4" height="7" rx="2" fill={color} />
+      </g>,
+
+  turtleneck: (color, g) => g === 'feminine'
+    ? <g>
+        {/* Fitted turtleneck */}
+        <path d="M15 38 Q15 35 24 35 Q33 35 33 38 L33 62 Q29 65 24 65 Q19 65 15 62 Z" fill={color} />
+        <rect x="18" y="32" width="12" height="9" rx="5" fill={color} />
+      </g>
+    : <g>
+        <rect x="12" y="38" width="24" height="26" rx="4" fill={color} />
+        <rect x="18" y="33" width="12" height="9" rx="5" fill={color} />
+      </g>,
+
+  crop: (color, g) => g === 'feminine'
+    ? <g>
+        {/* Cropped with midriff gap visible */}
+        <rect x="13" y="38" width="22" height="12" rx="4" fill={color} />
+        {/* Straps hint */}
+        <rect x="15" y="34" width="4" height="6" rx="2" fill={color} />
+        <rect x="29" y="34" width="4" height="6" rx="2" fill={color} />
+      </g>
+    : <rect x="13" y="38" width="22" height="14" rx="4" fill={color} />,
+
+  suit: (color, g) => g === 'feminine'
+    ? <g>
+        {/* Pantsuit */}
+        <path d="M14 38 Q14 35 24 35 Q34 35 34 38 L34 64 Q29 66 24 66 Q19 66 14 64 Z" fill={color} />
+        <path d="M20 38 L24 46 L28 38" fill={color} stroke="rgba(255,255,255,0.35)" strokeWidth="0.5" />
+        <path d="M20 38 L24 46 L28 38" fill="rgba(255,255,255,0.5)" />
+        {/* Lapels */}
+        <path d="M19 38 Q17 44 18 50" stroke="rgba(255,255,255,0.2)" strokeWidth="1" fill="none" />
+        <path d="M29 38 Q31 44 30 50" stroke="rgba(255,255,255,0.2)" strokeWidth="1" fill="none" />
+      </g>
+    : <g>
+        {/* Classic suit with lapels */}
+        <rect x="11" y="38" width="26" height="26" rx="4" fill={color} />
+        <path d="M21 38 L17 50 L24 48 L31 50 L27 38"
+          fill={color} stroke="rgba(255,255,255,0.3)" strokeWidth="0.5" />
+        <path d="M21 38 L24 48 L27 38" fill="rgba(255,255,255,0.55)" />
+        {/* Tie */}
+        <path d="M23 38 L22.5 48 L24 51 L25.5 48 L25 38 Z" fill="#A32D2D" opacity="0.9" />
+        {/* Lapel lines */}
+        <path d="M18 42 Q17 48 18 54" stroke="rgba(255,255,255,0.15)" strokeWidth="1" fill="none" />
+        <path d="M30 42 Q31 48 30 54" stroke="rgba(255,255,255,0.15)" strokeWidth="1" fill="none" />
+      </g>,
 }
 
 // ─── Accessories ──────────────────────────────────────────────────────────────
@@ -398,7 +473,7 @@ export default function AvatarSVG({ config = {}, extras = [], size = 64 }) {
       {/* Neck + outfit scaled by build */}
       <g transform={bodyXform}>
         <rect x="20" y="37" width="8" height="5" fill={skin} />
-        {topFn(topColor)}
+        {topFn(topColor, cfg.gender)}
       </g>
 
       {/* Headwear on top of hair */}
