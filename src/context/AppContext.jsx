@@ -6,7 +6,8 @@ const AppCtx = createContext(null)
 export function AppProvider({ children }) {
   // undefined = still loading | null = not logged in | object = logged in
   const [session, setSession] = useState(undefined)
-  const [profile, setProfile] = useState(null)
+  // undefined = still loading | null = no profile yet | object = has profile
+  const [profile, setProfile] = useState(undefined)
 
   async function loadProfile(userId) {
     const { data } = await supabase
@@ -18,8 +19,14 @@ export function AppProvider({ children }) {
   }
 
   useEffect(() => {
+    // Safety net — if Supabase never responds, unblock the UI after 4s
+    const fallback = setTimeout(() => {
+      setSession(s => s === undefined ? null : s)
+    }, 4000)
+
     // Restore existing session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(fallback)
       setSession(session ?? null)
       if (session) loadProfile(session.user.id)
     })
@@ -28,8 +35,12 @@ export function AppProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session ?? null)
-        if (session) loadProfile(session.user.id)
-        else setProfile(null)
+        if (session) {
+          setProfile(undefined) // reset to loading while we fetch
+          loadProfile(session.user.id)
+        } else {
+          setProfile(null)
+        }
       }
     )
 
