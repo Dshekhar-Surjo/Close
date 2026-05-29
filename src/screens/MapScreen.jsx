@@ -209,14 +209,14 @@ function LiveMap({ userLoc, nearbyUsers, closeConnections, myProfile, onUserClic
 }
 
 // ─── Profile bottom sheet ─────────────────────────────────────────────────────
-const HI_RANGE  = 50  // metres — must be within this to interact
-const PING_RANGE = 50
-
 function ProfileSheet({ user, onClose, onPing, onHi }) {
-  const [waved,      setWaved]      = useState(false)
-  const [waving,     setWaving]     = useState(false)
-  const canInteract  = user.isClose || (user.distance != null && user.distance <= HI_RANGE)
-  const tooFar       = user.distance != null && user.distance > PING_RANGE && !user.isClose
+  const [waved,  setWaved]  = useState(false)
+  const [waving, setWaving] = useState(false)
+  const { visibilityRadius } = useApp()
+  // Anyone visible on the map (within radius) can be interacted with.
+  // Close friends are always interactable regardless of distance.
+  const canInteract = user.isClose || (user.distance != null && user.distance <= visibilityRadius)
+  const tooFar      = !canInteract && user.distance != null
 
   const handleHi = async () => {
     setWaving(true)
@@ -263,7 +263,7 @@ function ProfileSheet({ user, onClose, onPing, onHi }) {
             background: 'rgba(255,255,255,0.04)', borderRadius: 10,
             padding: '8px 12px', marginBottom: 12,
           }}>
-            📍 Get within 50m to say Hi or Ping
+            📍 Get within {visibilityRadius}m to say Hi or Ping
           </div>
         )}
 
