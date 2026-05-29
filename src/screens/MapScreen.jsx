@@ -159,6 +159,8 @@ function LiveMap({ userLoc, nearbyUsers, closeConnections, myProfile, onUserClic
           transform: 'translate(-50%, -100%)',
           cursor: 'pointer', zIndex: 8,
           display: 'flex', flexDirection: 'column', alignItems: 'center',
+          animation: 'avatar-idle 2.6s ease-in-out infinite',
+          animationDelay: `${(u.id.charCodeAt(0) % 10) * 0.25}s`,
         }}>
           <div style={{
             width: 38, height: 38, borderRadius: '50%',
@@ -182,6 +184,8 @@ function LiveMap({ userLoc, nearbyUsers, closeConnections, myProfile, onUserClic
           transform: 'translate(-50%, -100%)',
           cursor: 'pointer', zIndex: 9,
           display: 'flex', flexDirection: 'column', alignItems: 'center',
+          animation: 'avatar-idle 2.2s ease-in-out infinite',
+          animationDelay: `${(u.id.charCodeAt(0) % 8) * 0.3}s`,
         }}>
           {/* Subtle gold pulse ring */}
           <div style={{
@@ -359,7 +363,11 @@ export default function MapScreen() {
   useEffect(() => {
     if (!userLoc || !session || didFetch.current) return
     didFetch.current = true
-    supabase.from('locations').select('*').then(({ data }) => data?.forEach(processLoc))
+    const pad = 0.02 // ≈ 2 km bounding box
+    supabase.from('locations').select('*')
+      .gte('lat', userLoc.lat - pad).lte('lat', userLoc.lat + pad)
+      .gte('lng', userLoc.lng - pad).lte('lng', userLoc.lng + pad)
+      .then(({ data }) => data?.forEach(processLoc))
   }, [userLoc, session, processLoc])
 
   useEffect(() => {

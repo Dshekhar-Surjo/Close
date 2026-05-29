@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
 import AvatarSVG, {
-  SKIN_TONES, HAIR_COLORS, TOP_COLORS, ACCESSORY_COLORS,
-  HAIR_STYLES, TOP_STYLES, FACE_SHAPES, EXTRAS_OPTIONS, AVATAR_DEFAULTS,
+  SKIN_TONES, HAIR_COLORS, TOP_COLORS, BOTTOM_COLORS, SHOE_COLORS,
+  ACCESSORY_COLORS, HAIR_STYLES, TOP_STYLES, BOTTOM_STYLES, BEARD_STYLES,
+  FACE_SHAPES, EXTRAS_OPTIONS, AVATAR_DEFAULTS,
 } from '../components/AvatarSVG'
 
-const TABS = ['Body', 'Hair', 'Outfit', 'Extras']
+const TABS = ['Body', 'Hair', 'Top', 'Bottom', 'Extras']
 
 const GENDER_OPTIONS = ['Masculine', 'Feminine', 'Non-binary', 'Fluid']
 const BUILDS         = ['Slim', 'Average', 'Athletic', 'Plus']
@@ -15,21 +16,29 @@ const BUILDS         = ['Slim', 'Average', 'Athletic', 'Plus']
 const FACE_SHAPE_LABELS = ['Oval', 'Round', 'Square', 'Heart', 'Angular']
 
 const HAIR_STYLE_LABELS = {
-  short:     'Short',      long:      'Long',
-  curly:     'Curly',      braids:    'Braids',
-  bun:       'Bun',        afro:      'Afro',
-  ponytail:  'Ponytail',   waves:     'Waves',
-  pixie:     'Pixie',      locs:      'Locs',
-  mohawk:    'Mohawk',     bob:       'Bob',
+  short: 'Short',     long: 'Long',       curly: 'Curly',
+  braids: 'Braids',   bun: 'Bun',         afro: 'Afro',
+  ponytail: 'Ponytail', waves: 'Waves',   pixie: 'Pixie',
+  locs: 'Locs',       mohawk: 'Mohawk',   bob: 'Bob',
   sideswept: 'Side Swept', spacebuns: 'Space Buns',
 }
 
 const TOP_STYLE_LABELS = {
-  casual:     'Casual',     formal:     'Formal',
-  sporty:     'Sporty',     hoodie:     'Hoodie',
-  dress:      'Dress',      jacket:     'Jacket',
-  tank:       'Tank',       turtleneck: 'Turtleneck',
-  crop:       'Crop',       suit:       'Suit',
+  tshirt: 'T-Shirt', shirt: 'Shirt',     hoodie: 'Hoodie',
+  jacket: 'Jacket',  sweater: 'Sweater', turtleneck: 'Turtleneck',
+  tank: 'Tank',      kameez: 'Kameez',   shawl: 'Shawl',
+  suit: 'Suit',
+}
+
+const BOTTOM_STYLE_LABELS = {
+  jeans: 'Jeans',       shorts: 'Shorts',   joggers: 'Joggers',
+  skirt: 'Skirt',       longskirt: 'Long Skirt', saree: 'Saree',
+  salwar: 'Salwar',     formal: 'Trousers', dhoti: 'Dhoti',
+}
+
+const BEARD_STYLE_LABELS = {
+  none: 'None',       stubble: 'Stubble',   mustache: 'Mustache',
+  goatee: 'Goatee',  full: 'Full Beard',   extended: 'Extended',
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -92,8 +101,13 @@ export default function AvatarCreatorScreen() {
       hairColorIndex:      Math.floor(Math.random() * HAIR_COLORS.length),
       topStyle:            TOP_STYLES[Math.floor(Math.random() * TOP_STYLES.length)],
       topColorIndex:       Math.floor(Math.random() * TOP_COLORS.length),
+      bottomStyle:         BOTTOM_STYLES[Math.floor(Math.random() * BOTTOM_STYLES.length)],
+      bottomColorIndex:    Math.floor(Math.random() * BOTTOM_COLORS.length),
+      beardStyle:          BEARD_STYLES[Math.floor(Math.random() * BEARD_STYLES.length)],
+      shoeColorIndex:      Math.floor(Math.random() * SHOE_COLORS.length),
       accessoryColorIndex: Math.floor(Math.random() * ACCESSORY_COLORS.length),
-      gender:              'neutral',
+      gender:              ['masculine','feminine','neutral','non-binary'][Math.floor(Math.random()*4)],
+      build:               ['slim','average','athletic','plus'][Math.floor(Math.random()*4)],
     })
     setExtras([])
   }
@@ -111,11 +125,11 @@ export default function AvatarCreatorScreen() {
     const { data, error: err } = await supabase
       .from('profiles')
       .upsert({
-        id:           session.user.id,
+        id:            session.user.id,
         username,
         avatar_config: cfg,
         avatar_extras: extras,
-        updated_at:   new Date().toISOString(),
+        updated_at:    new Date().toISOString(),
       }, { onConflict: 'id' })
       .select()
       .single()
@@ -127,6 +141,10 @@ export default function AvatarCreatorScreen() {
   }
 
   const hasHeadwear = extras.includes('Cap') || extras.includes('Beanie')
+
+  // Avatar preview: full body, 100px wide → height = 100 * 96/48 = 200px
+  const PREVIEW_W = 100
+  const PREVIEW_H = 200
 
   return (
     <div className="screen" style={{ background: 'var(--bg)' }}>
@@ -166,18 +184,20 @@ export default function AvatarCreatorScreen() {
 
       {/* Preview */}
       <div style={{
-        height: 180, background: '#13172a',
+        height: 240, background: '#13172a',
         borderBottom: '0.5px solid var(--border)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         position: 'relative', flexShrink: 0,
       }}>
         <div style={{
-          width: 120, height: 120, borderRadius: '50%',
-          border: '2.5px solid var(--accent)', background: '#1e1b4b',
-          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          width: PREVIEW_W, height: PREVIEW_H,
+          borderRadius: 16,
+          border: '2.5px solid var(--accent)',
+          background: '#1e1b4b',
           overflow: 'hidden',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         }}>
-          <AvatarSVG config={cfg} extras={extras} size={110} />
+          <AvatarSVG config={cfg} extras={extras} size={PREVIEW_W} fullBody />
         </div>
 
         <button onClick={randomize} style={{
@@ -195,7 +215,7 @@ export default function AvatarCreatorScreen() {
       <div style={{ display: 'flex', borderBottom: '0.5px solid var(--border)', flexShrink: 0 }}>
         {TABS.map((t, i) => (
           <button key={t} onClick={() => setTab(i)} style={{
-            flex: 1, height: 40, background: 'none', fontSize: 12,
+            flex: 1, height: 40, background: 'none', fontSize: 11,
             color: tab === i ? 'var(--on-dark)' : 'var(--text-muted)',
             borderBottom: `2px solid ${tab === i ? 'var(--accent)' : 'transparent'}`,
             fontWeight: tab === i ? 500 : 400, cursor: 'pointer',
@@ -236,6 +256,13 @@ export default function AvatarCreatorScreen() {
                 <Chip key={b} label={b} selected={cfg.build === b.toLowerCase()} onClick={() => set('build', b.toLowerCase())} />
               ))}
             </div>
+
+            <SectionLabel>Beard / facial hair</SectionLabel>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {BEARD_STYLES.map(s => (
+                <Chip key={s} label={BEARD_STYLE_LABELS[s]} selected={cfg.beardStyle === s} onClick={() => set('beardStyle', s)} />
+              ))}
+            </div>
           </>
         )}
 
@@ -258,17 +285,17 @@ export default function AvatarCreatorScreen() {
           </>
         )}
 
-        {/* ── Outfit ── */}
+        {/* ── Top ── */}
         {tab === 2 && (
           <>
-            <SectionLabel>Style</SectionLabel>
+            <SectionLabel>Top style</SectionLabel>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {TOP_STYLES.map(s => (
                 <Chip key={s} label={TOP_STYLE_LABELS[s] || s} selected={cfg.topStyle === s} onClick={() => set('topStyle', s)} />
               ))}
             </div>
 
-            <SectionLabel>Colour</SectionLabel>
+            <SectionLabel>Top colour</SectionLabel>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {TOP_COLORS.map((c, i) => (
                 <ColorDot key={c} color={c} selected={cfg.topColorIndex === i} onClick={() => set('topColorIndex', i)} />
@@ -277,8 +304,34 @@ export default function AvatarCreatorScreen() {
           </>
         )}
 
-        {/* ── Extras ── */}
+        {/* ── Bottom ── */}
         {tab === 3 && (
+          <>
+            <SectionLabel>Bottom style</SectionLabel>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {BOTTOM_STYLES.map(s => (
+                <Chip key={s} label={BOTTOM_STYLE_LABELS[s] || s} selected={cfg.bottomStyle === s} onClick={() => set('bottomStyle', s)} />
+              ))}
+            </div>
+
+            <SectionLabel>Bottom colour</SectionLabel>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {BOTTOM_COLORS.map((c, i) => (
+                <ColorDot key={c} color={c} selected={cfg.bottomColorIndex === i} onClick={() => set('bottomColorIndex', i)} />
+              ))}
+            </div>
+
+            <SectionLabel>Shoe colour</SectionLabel>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {SHOE_COLORS.map((c, i) => (
+                <ColorDot key={c} color={c} selected={cfg.shoeColorIndex === i} onClick={() => set('shoeColorIndex', i)} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ── Extras ── */}
+        {tab === 4 && (
           <>
             <SectionLabel>Accessories</SectionLabel>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
