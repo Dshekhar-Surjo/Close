@@ -4,22 +4,13 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { useUserLocation } from '../hooks/useUserLocation'
 import { supabase } from '../lib/supabase'
+import { haversineM } from '../lib/geo'
 import BottomNav from '../components/BottomNav'
 import CloseLogo from '../components/CloseLogo'
 import AvatarSVG from '../components/AvatarSVG'
 
 // Dark map with road + building labels — no API key needed
 const MAP_STYLE = 'https://tiles.openfreemap.org/styles/dark'
-
-// ─── Haversine distance ───────────────────────────────────────────────────────
-function haversineM(lat1, lng1, lat2, lng2) {
-  const R  = 6371000
-  const f1 = (lat1 * Math.PI) / 180, f2 = (lat2 * Math.PI) / 180
-  const df = ((lat2 - lat1) * Math.PI) / 180
-  const dl = ((lng2 - lng1) * Math.PI) / 180
-  const a  = Math.sin(df / 2) ** 2 + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
 
 // ─── Live map with React overlay markers ─────────────────────────────────────
 function LiveMap({ userLoc, nearbyUsers, closeConnections, myProfile, onUserClick, ghostMode, mapInstanceRef }) {
@@ -323,7 +314,7 @@ function ProfileSheet({ user, onClose, onPing, onHi }) {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function MapScreen() {
   const navigate          = useNavigate()
-  const { session, profile, ghostMode, setGhostMode, visibilityRadius } = useApp()
+  const { session, profile, ghostMode, setGhostMode, visibilityRadius, pingsCount } = useApp()
   const mapInstanceRef    = useRef(null)
 
   const [selectedUser,     setSelectedUser]     = useState(null)
@@ -375,6 +366,7 @@ export default function MapScreen() {
       .gte('lat', userLoc.lat - pad).lte('lat', userLoc.lat + pad)
       .gte('lng', userLoc.lng - pad).lte('lng', userLoc.lng + pad)
       .then(({ data }) => data?.forEach(processLoc))
+    return () => { didFetch.current = false }
   }, [userLoc, session, processLoc])
 
   useEffect(() => {
@@ -396,26 +388,36 @@ export default function MapScreen() {
       .select('*')
       .eq('status', 'accepted')
       .or(`from_id.eq.${myId},to_id.eq.${myId}`)
-    if (!reqs) return
+    if (!reqs || reqs.length === 0) { setCloseConnections([]); return }
 
-    const results = []
-    for (const req of reqs) {
-      const otherId = req.from_id === myId ? req.to_id : req.from_id
-      if (!profileCache.current[otherId]) {
-        const { data } = await supabase.from('profiles').select('*').eq('id', otherId).single()
-        if (data) profileCache.current[otherId] = data
-      }
-      const prof = profileCache.current[otherId]
-      const { data: loc } = await supabase.from('locations').select('*').eq('user_id', otherId).maybeSingle()
-      if (prof && loc) {
-        results.push({
+    const otherIds = reqs.map(r => r.from_id === myId ? r.to_id : r.from_id)
+
+    // Batch fetch profiles not already cached
+    const uncached = otherIds.filter(id => !profileCache.current[id])
+    if (uncached.length > 0) {
+      const { data: profs } = await supabase.from('profiles').select('*').in('id', uncached)
+      profs?.forEach(p => { profileCache.current[p.id] = p })
+    }
+
+    // Batch fetch locations
+    const { data: locs } = await supabase.from('locations').select('*').in('user_id', otherIds)
+    const locMap = {}
+    locs?.forEach(l => { locMap[l.user_id] = l })
+
+    const results = otherIds
+      .map(otherId => {
+        const prof = profileCache.current[otherId]
+        const loc  = locMap[otherId]
+        if (!prof || !loc) return null
+        return {
           id: otherId, name: prof.username || 'Close friend',
           lat: loc.lat, lng: loc.lng, distance: null,
           avatar: prof.avatar_config || {}, extras: prof.avatar_extras || [],
           isClose: true,
-        })
-      }
-    }
+        }
+      })
+      .filter(Boolean)
+
     setCloseConnections(results)
   }, [session])
 
@@ -504,7 +506,7 @@ export default function MapScreen() {
         )}
       </div>
 
-      <BottomNav pingsCount={0} />
+      <BottomNav pingsCount={pingsCount} />
     </div>
   )
 }

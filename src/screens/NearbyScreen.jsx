@@ -3,21 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { useUserLocation } from '../hooks/useUserLocation'
 import { supabase } from '../lib/supabase'
+import { haversineM } from '../lib/geo'
 import BottomNav from '../components/BottomNav'
 import AvatarSVG from '../components/AvatarSVG'
 
-function haversineM(lat1, lng1, lat2, lng2) {
-  const R = 6371000
-  const f1 = lat1 * Math.PI / 180, f2 = lat2 * Math.PI / 180
-  const df = (lat2 - lat1) * Math.PI / 180
-  const dl = (lng2 - lng1) * Math.PI / 180
-  const a = Math.sin(df / 2) ** 2 + Math.cos(f1) * Math.cos(f2) * Math.sin(dl / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
 
 export default function NearbyScreen() {
   const navigate = useNavigate()
-  const { session, ghostMode, visibilityRadius } = useApp()
+  const { session, ghostMode, visibilityRadius, pingsCount } = useApp()
   const userLoc = useUserLocation(session?.user?.id, { ghostMode })
 
   const [nearbyUsers, setNearbyUsers] = useState([])
@@ -68,12 +61,13 @@ export default function NearbyScreen() {
     setLoading(false)
   }, [session, visibilityRadius])
 
-  // First fetch once GPS arrives
+  // First fetch once GPS arrives; reset on unmount so re-navigation refetches
   useEffect(() => {
     if (userLoc && !didFetch.current) {
       didFetch.current = true
       fetchNearby()
     }
+    return () => { didFetch.current = false }
   }, [userLoc, fetchNearby])
 
   // Realtime updates
@@ -165,7 +159,7 @@ export default function NearbyScreen() {
         ))}
       </div>
 
-      <BottomNav pingsCount={0} />
+      <BottomNav pingsCount={pingsCount} />
     </div>
   )
 }

@@ -83,11 +83,16 @@ function ColorDot({ color, selected, onClick }) {
 export default function AvatarCreatorScreen() {
   const navigate = useNavigate()
   const { session, setProfile } = useApp()
-  const [tab, setTab]       = useState(0)
-  const [cfg, setCfg]       = useState(AVATAR_DEFAULTS)
-  const [extras, setExtras] = useState([])
-  const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState(null)
+  const [tab, setTab]           = useState(0)
+  const [cfg, setCfg]           = useState(AVATAR_DEFAULTS)
+  const [extras, setExtras]     = useState([])
+  const [saving, setSaving]     = useState(false)
+  const [error, setError]       = useState(null)
+  const [username, setUsername] = useState(
+    () => session?.user?.user_metadata?.full_name?.split(' ')[0] ||
+          session?.user?.email?.split('@')[0] ||
+          ''
+  )
 
   const set = (key, val) => setCfg(c => ({ ...c, [key]: val }))
   const toggleExtra = (e) =>
@@ -114,19 +119,16 @@ export default function AvatarCreatorScreen() {
 
   const handleSave = async () => {
     if (!session) { navigate('/auth'); return }
+    const trimmedName = username.trim()
+    if (!trimmedName) { setError('Please enter a username.'); return }
     setSaving(true)
     setError(null)
-
-    const username =
-      session.user.user_metadata?.full_name ||
-      session.user.email?.split('@')[0] ||
-      'User'
 
     const { data, error: err } = await supabase
       .from('profiles')
       .upsert({
         id:            session.user.id,
-        username,
+        username:      trimmedName,
         avatar_config: cfg,
         avatar_extras: extras,
         updated_at:    new Date().toISOString(),
@@ -174,6 +176,23 @@ export default function AvatarCreatorScreen() {
         >
           {saving ? 'Saving…' : 'Save'}
         </button>
+      </div>
+
+      {/* Username input */}
+      <div style={{ padding: '10px 16px 0', flexShrink: 0 }}>
+        <input
+          value={username}
+          onChange={e => setUsername(e.target.value)}
+          placeholder="Your name (shown to nearby people)"
+          maxLength={24}
+          style={{
+            width: '100%', height: 40, borderRadius: 20,
+            background: 'rgba(255,255,255,0.07)',
+            border: '0.5px solid rgba(255,255,255,0.15)',
+            padding: '0 16px', fontSize: 14, color: '#fff',
+            boxSizing: 'border-box',
+          }}
+        />
       </div>
 
       {error && (

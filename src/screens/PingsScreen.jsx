@@ -8,7 +8,7 @@ import AvatarSVG from '../components/AvatarSVG'
 
 export default function PingsScreen() {
   const navigate = useNavigate()
-  const { session } = useApp()
+  const { session, pingsCount } = useApp()
   const myId = session?.user?.id
 
   const [requests,   setRequests]   = useState([])   // incoming pending close requests
@@ -207,7 +207,7 @@ export default function PingsScreen() {
         )}
       </div>
 
-      <BottomNav pingsCount={requests.length + waves.filter(w => !w.seen).length} />
+      <BottomNav pingsCount={pingsCount} />
     </div>
   )
 }

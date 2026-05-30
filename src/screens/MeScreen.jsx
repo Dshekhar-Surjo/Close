@@ -6,16 +6,20 @@ import AvatarSVG from '../components/AvatarSVG'
 
 export default function MeScreen() {
   const navigate = useNavigate()
-  const { session, profile, logout, ghostMode, setGhostMode, visibilityRadius, setVisibilityRadius } = useApp()
+  const {
+    session, profile, logout, pingsCount,
+    ghostMode, setGhostMode,
+    visibilityRadius, setVisibilityRadius,
+    pingPolicy, setPingPolicy,
+  } = useApp()
 
   const username    = profile?.username || session?.user?.email?.split('@')[0] || 'You'
   const avatarConfig = profile?.avatar_config || {}
   const avatarExtras = profile?.avatar_extras  || []
 
-  const [pingsOn,      setPingsOn]      = useState(true)
-  const [privacyOpen,  setPrivacyOpen]  = useState(false)
-  const [radiusOpen,   setRadiusOpen]   = useState(false)
-  const [pingPolicy,   setPingPolicy]   = useState('everyone') // 'everyone' | 'approved' | 'nobody'
+  const [pingsOn,     setPingsOn]     = useState(true)
+  const [privacyOpen, setPrivacyOpen] = useState(false)
+  const [radiusOpen,  setRadiusOpen]  = useState(false)
 
   const handleLogout = async () => { await logout() }
 
@@ -161,7 +165,7 @@ export default function MeScreen() {
 
       </div>
 
-      <BottomNav pingsCount={0} />
+      <BottomNav pingsCount={pingsCount} />
     </div>
   )
 }

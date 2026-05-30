@@ -4,12 +4,10 @@ import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
 import AvatarSVG from '../components/AvatarSVG'
 
-const MOCK_MESSAGES = [
-  { id: 1, from: 'them', text: "hey! saw you near the metro — waiting for the blue line? 👀", time: '9:38' },
-  { id: 2, from: 'me',   text: "haha yeah, stuck here for 10 mins",                           time: '9:39' },
-  { id: 3, from: 'them', text: "same 😅 it's packed today",                                   time: '9:40' },
-  { id: 4, from: 'me',   text: "do you commute this way daily?",                               time: '9:41' },
-]
+function formatMsgTime(iso) {
+  const d = new Date(iso)
+  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
+}
 
 // Status helpers
 // closeReq: null (none) | { id, from_id, to_id, status }
@@ -32,13 +30,44 @@ export default function ChatScreen() {
   const myId   = session?.user?.id
   const theirId = user.id
 
-  const [messages,  setMessages]  = useState(MOCK_MESSAGES)
-  const [input,     setInput]     = useState('')
-  const [closeReq,  setCloseReq]  = useState(null)   // row from close_requests
+  const [messages,     setMessages]     = useState([])
+  const [input,        setInput]        = useState('')
+  const [closeReq,     setCloseReq]     = useState(null)
   const [closeLoading, setCloseLoading] = useState(false)
+  const [sending,      setSending]      = useState(false)
   const bottomRef = useRef(null)
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
+
+  // Load message history
+  const loadMessages = useCallback(async () => {
+    if (!myId || !theirId) return
+    const { data } = await supabase
+      .from('messages')
+      .select('*')
+      .or(`and(from_id.eq.${myId},to_id.eq.${theirId}),and(from_id.eq.${theirId},to_id.eq.${myId})`)
+      .order('created_at', { ascending: true })
+    if (data) setMessages(data)
+  }, [myId, theirId])
+
+  useEffect(() => { loadMessages() }, [loadMessages])
+
+  // Realtime: append new messages as they arrive
+  useEffect(() => {
+    if (!myId || !theirId) return
+    const ch = supabase
+      .channel(`chat-${[myId, theirId].sort().join('-')}`)
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        ({ new: msg }) => {
+          const isOurs =
+            (msg.from_id === myId && msg.to_id === theirId) ||
+            (msg.from_id === theirId && msg.to_id === myId)
+          if (isOurs) setMessages(prev => [...prev, msg])
+        })
+      .subscribe()
+    return () => supabase.removeChannel(ch)
+  }, [myId, theirId])
 
   // Load existing close request
   const loadCloseReq = useCallback(async () => {
@@ -83,13 +112,13 @@ export default function ChatScreen() {
     setCloseLoading(false)
   }
 
-  const send = () => {
+  const send = async () => {
     const text = input.trim()
-    if (!text) return
-    const now  = new Date()
-    const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`
-    setMessages(m => [...m, { id: Date.now(), from: 'me', text, time }])
+    if (!text || sending || !myId) return
+    setSending(true)
     setInput('')
+    await supabase.from('messages').insert({ from_id: myId, to_id: theirId, text })
+    setSending(false)
   }
 
   const handleKey = (e) => {
@@ -142,23 +171,37 @@ export default function ChatScreen() {
 
       {/* Messages */}
       <div className="scroll-area" style={{ padding: '14px 14px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--text-dim)', marginBottom: 4 }}>just now</div>
-
-        {messages.map(m => (
-          <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.from === 'me' ? 'flex-end' : 'flex-start' }}>
-            <div style={{
-              maxWidth: '72%', padding: '9px 14px', borderRadius: 18,
-              borderBottomLeftRadius:  m.from === 'them' ? 4 : 18,
-              borderBottomRightRadius: m.from === 'me'   ? 4 : 18,
-              background: m.from === 'me' ? 'var(--accent)' : 'rgba(255,255,255,0.08)',
-              color: m.from === 'me' ? '#fff' : 'rgba(255,255,255,0.85)',
-              fontSize: 14, lineHeight: 1.45,
-            }}>
-              {m.text}
-            </div>
-            <span style={{ fontSize: 9, color: 'var(--text-dim)', marginTop: 2 }}>{m.time}</span>
+        {messages.length > 0 && (
+          <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--text-dim)', marginBottom: 4 }}>
+            {new Date(messages[0].created_at).toLocaleDateString()}
           </div>
-        ))}
+        )}
+
+        {messages.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, color: 'var(--text-dim)' }}>
+            No messages yet — say hi!
+          </div>
+        )}
+        {messages.map(m => {
+          const isMe = m.from_id === myId
+          return (
+            <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
+              <div style={{
+                maxWidth: '72%', padding: '9px 14px', borderRadius: 18,
+                borderBottomLeftRadius:  !isMe ? 4 : 18,
+                borderBottomRightRadius: isMe  ? 4 : 18,
+                background: isMe ? 'var(--accent)' : 'rgba(255,255,255,0.08)',
+                color: isMe ? '#fff' : 'rgba(255,255,255,0.85)',
+                fontSize: 14, lineHeight: 1.45,
+              }}>
+                {m.text}
+              </div>
+              <span style={{ fontSize: 9, color: 'var(--text-dim)', marginTop: 2 }}>
+                {formatMsgTime(m.created_at)}
+              </span>
+            </div>
+          )
+        })}
         <div ref={bottomRef} />
       </div>
 
@@ -207,11 +250,12 @@ export default function ChatScreen() {
             padding: '0 16px', fontSize: 14, color: '#fff',
           }}
         />
-        <button onClick={send} style={{
+        <button onClick={send} disabled={sending || !input.trim()} style={{
           width: 40, height: 40, borderRadius: '50%',
           background: input.trim() ? 'var(--accent)' : 'rgba(127,119,221,0.2)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 16, color: '#fff', transition: 'background 0.2s',
+          opacity: sending ? 0.6 : 1,
         }} aria-label="Send">↗</button>
       </div>
     </div>
