@@ -35,11 +35,17 @@ export function AppProvider({ children }) {
   }
 
   // ── Setters that also persist to Supabase ─────────────────────────────────
-  const setGhostMode = useCallback(async (val) => {
-    const next = typeof val === 'function' ? val(false) : val
-    setGhostModeState(next)
-    const uid = (await supabase.auth.getUser()).data.user?.id
-    if (uid) await supabase.from('profiles').update({ ghost_mode: next }).eq('id', uid)
+  const setGhostMode = useCallback((val) => {
+    setGhostModeState(prev => {
+      const next = typeof val === 'function' ? val(prev) : val
+      // Fire-and-forget persist
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user?.id) {
+          supabase.from('profiles').update({ ghost_mode: next }).eq('id', data.user.id)
+        }
+      })
+      return next
+    })
   }, [])
 
   const setVisibilityRadius = useCallback(async (val) => {
