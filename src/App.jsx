@@ -47,7 +47,7 @@ function AppRoutes() {
 
   if (profile === undefined) return <Spinner />
 
-  if (!profile || !profile.avatar_config || Object.keys(profile.avatar_config).length === 0) {
+  if (!profile || !profile.avatar_url) {
     return <AvatarCreatorScreen />
   }
 
