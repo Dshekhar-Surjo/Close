@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase'
 import { haversineM } from '../lib/geo'
 import BottomNav from '../components/BottomNav'
 import CloseLogo from '../components/CloseLogo'
-import AvatarSVG from '../components/AvatarSVG'
+import AvatarPhoto from '../components/AvatarPhoto'
 
 // Dark map with road + building labels — no API key needed
 const MAP_STYLE = 'https://tiles.openfreemap.org/styles/dark'
@@ -130,18 +130,7 @@ function LiveMap({ userLoc, nearbyUsers, closeConnections, myProfile, onUserClic
               animationDelay: `${i * 0.8}s`,
             }} />
           ))}
-          <div style={{
-            width: 46, height: 46, borderRadius: '50%',
-            border: '2.5px solid var(--accent)', background: '#1e1b4b',
-            overflow: 'hidden', display: 'flex', alignItems: 'flex-end',
-            justifyContent: 'center', zIndex: 1,
-          }}>
-            <AvatarSVG
-              config={myProfile?.avatar_config}
-              extras={myProfile?.avatar_extras || []}
-              size={44}
-            />
-          </div>
+          <AvatarPhoto url={myProfile?.avatar_url} size={46} style={{ border: '2.5px solid var(--accent)', zIndex: 1 }} />
           <span style={{
             fontSize: 10, color: 'var(--on-dark)',
             background: 'rgba(60,52,137,0.85)',
@@ -160,13 +149,7 @@ function LiveMap({ userLoc, nearbyUsers, closeConnections, myProfile, onUserClic
           animation: 'avatar-idle 2.6s ease-in-out infinite',
           animationDelay: `${(u.id.charCodeAt(0) % 10) * 0.25}s`,
         }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: '50%',
-            border: '2px solid rgba(255,255,255,0.5)', background: '#1a1a2e',
-            overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-          }}>
-            <AvatarSVG config={u.avatar} extras={u.extras || []} size={36} />
-          </div>
+          <AvatarPhoto url={u.avatarUrl} size={38} style={{ border: '2px solid rgba(255,255,255,0.5)' }} />
           <span style={{
             fontSize: 10, color: 'rgba(255,255,255,0.85)',
             background: 'rgba(0,0,0,0.6)',
@@ -192,13 +175,7 @@ function LiveMap({ userLoc, nearbyUsers, closeConnections, myProfile, onUserClic
             top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
             animation: 'pulse-ring 2.5s ease-out infinite',
           }} />
-          <div style={{
-            width: 38, height: 38, borderRadius: '50%',
-            border: '2px dashed #f9c74f', background: '#1a1a2e',
-            overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-          }}>
-            <AvatarSVG config={u.avatar} extras={u.extras || []} size={36} />
-          </div>
+          <AvatarPhoto url={u.avatarUrl} size={38} style={{ border: '2px dashed #f9c74f' }} />
           <span style={{
             fontSize: 10, color: '#f9c74f',
             background: 'rgba(0,0,0,0.7)',
@@ -239,14 +216,7 @@ function ProfileSheet({ user, onClose, onPing, onHi }) {
         <div style={{ width: 36, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.2)', margin: '0 auto 16px' }} />
 
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-          <div style={{
-            width: 80, height: 80, borderRadius: '50%',
-            border: `2.5px solid ${user.isClose ? '#f9c74f' : 'var(--accent)'}`,
-            background: '#1e1b4b', overflow: 'hidden',
-            display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-          }}>
-            <AvatarSVG config={user.avatar} extras={user.extras || []} size={78} />
-          </div>
+          <AvatarPhoto url={user.avatarUrl} size={80} style={{ border: `2.5px solid ${user.isClose ? '#f9c74f' : 'var(--accent)'}` }} />
         </div>
 
         <h2 style={{ textAlign: 'center', fontSize: 18, fontWeight: 500, color: '#fff', marginBottom: 4 }}>
@@ -350,7 +320,7 @@ export default function MapScreen() {
       id: loc.user_id, name: prof.username || 'Nearby',
       lat: loc.lat, lng: loc.lng,
       distance: Math.round(dist),
-      avatar: prof.avatar_config || {}, extras: prof.avatar_extras || [],
+      avatarUrl: prof.avatar_url || null,
     }
     setNearbyUsers(prev => {
       const exists = prev.some(u => u.id === entry.id)
@@ -412,7 +382,7 @@ export default function MapScreen() {
         return {
           id: otherId, name: prof.username || 'Close friend',
           lat: loc.lat, lng: loc.lng, distance: null,
-          avatar: prof.avatar_config || {}, extras: prof.avatar_extras || [],
+          avatarUrl: prof.avatar_url || null,
           isClose: true,
         }
       })

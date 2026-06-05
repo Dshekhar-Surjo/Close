@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
 import BottomNav from '../components/BottomNav'
-import AvatarSVG from '../components/AvatarSVG'
+import AvatarPhoto from '../components/AvatarPhoto'
 
 
 export default function PingsScreen() {
@@ -108,13 +108,7 @@ export default function PingsScreen() {
                   display: 'flex', gap: 12, alignItems: 'center',
                 }}>
                   {/* Avatar */}
-                  <div style={{
-                    width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
-                    border: '2px solid rgba(249,199,79,0.5)', background: '#1e1b4b',
-                    overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-                  }}>
-                    <AvatarSVG config={prof?.avatar_config || {}} extras={prof?.avatar_extras || []} size={46} />
-                  </div>
+                  <AvatarPhoto url={prof?.avatar_url} size={48} style={{ border: '2px solid rgba(249,199,79,0.5)', flexShrink: 0 }} />
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 500, color: '#fff', marginBottom: 2 }}>
@@ -167,13 +161,7 @@ export default function PingsScreen() {
                   borderRadius: 14, padding: '10px 12px', marginBottom: 8,
                   display: 'flex', alignItems: 'center', gap: 10,
                 }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-                    border: '1.5px solid rgba(127,119,221,0.4)', background: '#1e1b4b',
-                    overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-                  }}>
-                    <AvatarSVG config={prof?.avatar_config || {}} extras={prof?.avatar_extras || []} size={38} />
-                  </div>
+                  <AvatarPhoto url={prof?.avatar_url} size={40} style={{ border: '1.5px solid rgba(127,119,221,0.4)', flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: 13, color: '#fff', fontWeight: wave.seen ? 400 : 600 }}>
                       {prof?.username || '…'}
@@ -182,7 +170,7 @@ export default function PingsScreen() {
                     <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 2 }}>{timeAgo}</div>
                   </div>
                   <button
-                    onClick={() => navigate(`/chat/${wave.from_id}`, { state: { user: { id: wave.from_id, name: prof?.username || 'User', avatar: prof?.avatar_config || {}, extras: prof?.avatar_extras || [], distance: null } } })}
+                    onClick={() => navigate(`/chat/${wave.from_id}`, { state: { user: { id: wave.from_id, name: prof?.username || 'User', avatarUrl: prof?.avatar_url || null, distance: null } } })}
                     style={{
                       height: 30, borderRadius: 15, padding: '0 12px',
                       background: 'var(--accent)', color: '#fff', fontSize: 12,

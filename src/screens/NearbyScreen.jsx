@@ -5,7 +5,7 @@ import { useUserLocation } from '../hooks/useUserLocation'
 import { supabase } from '../lib/supabase'
 import { haversineM } from '../lib/geo'
 import BottomNav from '../components/BottomNav'
-import AvatarSVG from '../components/AvatarSVG'
+import AvatarPhoto from '../components/AvatarPhoto'
 
 
 export default function NearbyScreen() {
@@ -51,8 +51,7 @@ export default function NearbyScreen() {
         id: loc.user_id,
         name: prof.username || 'Nearby',
         distance: Math.round(dist),
-        avatar: prof.avatar_config || {},
-        extras: prof.avatar_extras || [],
+        avatarUrl: prof.avatar_url || null,
       })
     }
 
@@ -123,13 +122,7 @@ export default function NearbyScreen() {
             }}
           >
             <div style={{ position: 'relative', flexShrink: 0 }}>
-              <div style={{
-                width: 46, height: 46, borderRadius: '50%',
-                border: '1.5px solid rgba(127,119,221,0.45)', background: '#1e1b4b',
-                overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-              }}>
-                <AvatarSVG config={u.avatar} extras={u.extras} size={44} />
-              </div>
+              <AvatarPhoto url={u.avatarUrl} size={46} style={{ border: '1.5px solid rgba(127,119,221,0.45)' }} />
               <div style={{
                 position: 'absolute', bottom: 1, right: 1,
                 width: 10, height: 10, borderRadius: '50%',

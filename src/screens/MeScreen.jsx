@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import BottomNav from '../components/BottomNav'
-import AvatarSVG from '../components/AvatarSVG'
+import AvatarPhoto from '../components/AvatarPhoto'
 
 export default function MeScreen() {
   const navigate = useNavigate()
@@ -14,8 +14,7 @@ export default function MeScreen() {
   } = useApp()
 
   const username    = profile?.username || session?.user?.email?.split('@')[0] || 'You'
-  const avatarConfig = profile?.avatar_config || {}
-  const avatarExtras = profile?.avatar_extras  || []
+  const avatarUrl = profile?.avatar_url || null
 
   const [pingsOn,     setPingsOn]     = useState(true)
   const [privacyOpen, setPrivacyOpen] = useState(false)
@@ -50,13 +49,7 @@ export default function MeScreen() {
         {/* Avatar */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 28 }}>
           <div style={{ position: 'relative' }}>
-            <div style={{
-              width: 100, height: 100, borderRadius: '50%',
-              border: '2.5px solid var(--accent)', background: '#1e1b4b',
-              overflow: 'hidden', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-            }}>
-              <AvatarSVG config={avatarConfig} extras={avatarExtras} size={98} />
-            </div>
+            <AvatarPhoto url={avatarUrl} size={100} style={{ border: '2.5px solid var(--accent)' }} />
             <button onClick={() => navigate('/avatar-creator')} style={{
               position: 'absolute', bottom: 0, right: 0,
               width: 30, height: 30, borderRadius: '50%',

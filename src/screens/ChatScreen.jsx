@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
-import AvatarSVG from '../components/AvatarSVG'
+import AvatarPhoto from '../components/AvatarPhoto'
 
 function formatMsgTime(iso) {
   const d = new Date(iso)
@@ -26,7 +26,7 @@ export default function ChatScreen() {
   const { id }    = useParams()
   const { session } = useApp()
 
-  const user   = state?.user || { id, name: 'Unknown', avatar: {}, extras: [], distance: '—', moving: false }
+  const user   = state?.user || { id, name: 'Unknown', avatarUrl: null, distance: '—', moving: false }
   const myId   = session?.user?.id
   const theirId = user.id
 
@@ -138,14 +138,7 @@ export default function ChatScreen() {
       }}>
         <button onClick={() => navigate(-1)} style={{ background: 'none', color: 'rgba(255,255,255,0.6)', fontSize: 20, padding: '4px 6px 4px 0' }} aria-label="Back">←</button>
 
-        <div style={{
-          width: 36, height: 36, borderRadius: '50%',
-          border: `1.5px solid ${isClose ? '#f9c74f' : 'var(--accent)'}`,
-          background: '#1e1b4b', overflow: 'hidden',
-          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-        }}>
-          <AvatarSVG config={user.avatar} extras={user.extras || []} size={34} />
-        </div>
+        <AvatarPhoto url={user.avatarUrl} size={36} style={{ border: `1.5px solid ${isClose ? '#f9c74f' : 'var(--accent)'}` }} />
 
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 500, color: '#fff', display: 'flex', alignItems: 'center', gap: 5 }}>
