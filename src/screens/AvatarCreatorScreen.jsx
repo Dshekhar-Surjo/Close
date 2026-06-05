@@ -1,81 +1,63 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
-import AvatarSVG, {
-  SKIN_TONES, HAIR_COLORS, TOP_COLORS, BOTTOM_COLORS, SHOE_COLORS,
-  ACCESSORY_COLORS, HAIR_STYLES, TOP_STYLES, BOTTOM_STYLES, BEARD_STYLES,
-  FACE_SHAPES, EXTRAS_OPTIONS, AVATAR_DEFAULTS,
-} from '../components/AvatarSVG'
 
-const TABS = ['Body', 'Hair', 'Top', 'Bottom', 'Extras']
+// ─── Filter config ────────────────────────────────────────────────────────────
+const GENDER_OPTS = [
+  { label: 'Any',    value: '' },
+  { label: 'Men',    value: 'male' },
+  { label: 'Women',  value: 'female' },
+]
 
-const GENDER_OPTIONS = ['Masculine', 'Feminine', 'Non-binary', 'Fluid']
-const BUILDS         = ['Slim', 'Average', 'Athletic', 'Plus']
+// nationality groups mapped to rough appearance diversity
+const LOOK_OPTS = [
+  { label: 'All looks',  nats: 'us,gb,au,ca,ie,nz,dk,fi,no,nl,es,fr,de,ch' },
+  { label: 'South Asian', nats: 'in' },
+  { label: 'East Asian',  nats: 'jp,cn,kr' },
+  { label: 'Latin',       nats: 'mx,br,es' },
+  { label: 'African',     nats: 'ng,za,ke' },
+  { label: 'Middle Eastern', nats: 'ir,tr' },
+]
 
-const FACE_SHAPE_LABELS = ['Oval', 'Round', 'Square', 'Heart', 'Angular']
+const PAGE_SIZE = 24
 
-const HAIR_STYLE_LABELS = {
-  short: 'Short',     long: 'Long',       curly: 'Curly',
-  braids: 'Braids',   bun: 'Bun',         afro: 'Afro',
-  ponytail: 'Ponytail', waves: 'Waves',   pixie: 'Pixie',
-  locs: 'Locs',       mohawk: 'Mohawk',   bob: 'Bob',
-  sideswept: 'Side Swept', spacebuns: 'Space Buns',
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function buildUrl(gender, look, page) {
+  const params = new URLSearchParams({
+    results: PAGE_SIZE,
+    inc: 'picture,name',
+    page,
+    seed: `close-${look.nats}-${gender || 'any'}-${page}`,
+  })
+  if (gender) params.set('gender', gender)
+  params.set('nat', look.nats)
+  return `https://randomuser.me/api/?${params}`
 }
 
-const TOP_STYLE_LABELS = {
-  tshirt: 'T-Shirt', shirt: 'Shirt',     hoodie: 'Hoodie',
-  jacket: 'Jacket',  sweater: 'Sweater', turtleneck: 'Turtleneck',
-  tank: 'Tank',      kameez: 'Kameez',   shawl: 'Shawl',
-  suit: 'Suit',
-}
-
-const BOTTOM_STYLE_LABELS = {
-  jeans: 'Jeans',       shorts: 'Shorts',   joggers: 'Joggers',
-  skirt: 'Skirt',       longskirt: 'Long Skirt', saree: 'Saree',
-  salwar: 'Salwar',     formal: 'Trousers', dhoti: 'Dhoti',
-}
-
-const BEARD_STYLE_LABELS = {
-  none: 'None',       stubble: 'Stubble',   mustache: 'Mustache',
-  goatee: 'Goatee',  full: 'Full Beard',   extended: 'Extended',
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-function SectionLabel({ children }) {
+// ─── AvatarPhoto (reused here for preview) ───────────────────────────────────
+function AvatarPhoto({ url, size = 44, style = {} }) {
+  const [err, setErr] = useState(false)
+  if (!url || err) {
+    return (
+      <div style={{
+        width: size, height: size, borderRadius: '50%',
+        background: 'rgba(255,255,255,0.1)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: size * 0.4, color: 'rgba(255,255,255,0.3)',
+        flexShrink: 0, ...style,
+      }}>👤</div>
+    )
+  }
   return (
-    <div style={{
-      fontSize: 10, color: 'var(--text-muted)',
-      letterSpacing: '0.08em', textTransform: 'uppercase',
-      margin: '16px 0 8px',
-    }}>
-      {children}
-    </div>
-  )
-}
-
-function Chip({ label, selected, onClick }) {
-  return (
-    <button onClick={onClick} style={{
-      height: 30, borderRadius: 15, padding: '0 13px', fontSize: 12,
-      background: selected ? 'var(--accent-soft)' : 'rgba(255,255,255,0.05)',
-      border: `0.5px solid ${selected ? 'var(--accent-border)' : 'rgba(255,255,255,0.1)'}`,
-      color: selected ? 'var(--on-dark)' : 'rgba(255,255,255,0.5)',
-      cursor: 'pointer',
-    }}>
-      {label}
-    </button>
-  )
-}
-
-function ColorDot({ color, selected, onClick }) {
-  return (
-    <button onClick={onClick} style={{
-      width: 26, height: 26, borderRadius: '50%',
-      background: color, border: 'none', padding: 0, flexShrink: 0,
-      boxShadow: selected ? `0 0 0 2px var(--bg), 0 0 0 4px var(--accent)` : 'none',
-      cursor: 'pointer',
-    }} aria-label={`Color ${color}`} />
+    <img
+      src={url} alt="avatar"
+      onError={() => setErr(true)}
+      style={{
+        width: size, height: size, borderRadius: '50%',
+        objectFit: 'cover', flexShrink: 0, display: 'block', ...style,
+      }}
+    />
   )
 }
 
@@ -83,55 +65,68 @@ function ColorDot({ color, selected, onClick }) {
 export default function AvatarCreatorScreen() {
   const navigate = useNavigate()
   const { session, setProfile } = useApp()
-  const [tab, setTab]           = useState(0)
-  const [cfg, setCfg]           = useState(AVATAR_DEFAULTS)
-  const [extras, setExtras]     = useState([])
-  const [saving, setSaving]     = useState(false)
-  const [error, setError]       = useState(null)
-  const [username, setUsername] = useState(
+
+  const [username,  setUsername]  = useState(
     () => session?.user?.user_metadata?.full_name?.split(' ')[0] ||
-          session?.user?.email?.split('@')[0] ||
-          ''
+          session?.user?.email?.split('@')[0] || ''
   )
+  const [genderIdx, setGenderIdx] = useState(0)
+  const [lookIdx,   setLookIdx]   = useState(0)
+  const [photos,    setPhotos]    = useState([])
+  const [page,      setPage]      = useState(1)
+  const [loading,   setLoading]   = useState(false)
+  const [hasMore,   setHasMore]   = useState(true)
+  const [selected,  setSelected]  = useState(null)
+  const [saving,    setSaving]    = useState(false)
+  const [error,     setError]     = useState(null)
 
-  const set = (key, val) => setCfg(c => ({ ...c, [key]: val }))
-  const toggleExtra = (e) =>
-    setExtras(prev => prev.includes(e) ? prev.filter(x => x !== e) : [...prev, e])
+  const gender = GENDER_OPTS[genderIdx].value
+  const look   = LOOK_OPTS[lookIdx]
 
-  const randomize = () => {
-    setCfg({
-      skinIndex:           Math.floor(Math.random() * SKIN_TONES.length),
-      faceShapeIndex:      Math.floor(Math.random() * FACE_SHAPES.length),
-      hairStyle:           HAIR_STYLES[Math.floor(Math.random() * HAIR_STYLES.length)],
-      hairColorIndex:      Math.floor(Math.random() * HAIR_COLORS.length),
-      topStyle:            TOP_STYLES[Math.floor(Math.random() * TOP_STYLES.length)],
-      topColorIndex:       Math.floor(Math.random() * TOP_COLORS.length),
-      bottomStyle:         BOTTOM_STYLES[Math.floor(Math.random() * BOTTOM_STYLES.length)],
-      bottomColorIndex:    Math.floor(Math.random() * BOTTOM_COLORS.length),
-      beardStyle:          BEARD_STYLES[Math.floor(Math.random() * BEARD_STYLES.length)],
-      shoeColorIndex:      Math.floor(Math.random() * SHOE_COLORS.length),
-      accessoryColorIndex: Math.floor(Math.random() * ACCESSORY_COLORS.length),
-      gender:              ['masculine','feminine','neutral','non-binary'][Math.floor(Math.random()*4)],
-      build:               ['slim','average','athletic','plus'][Math.floor(Math.random()*4)],
-    })
-    setExtras([])
+  // fetch a page of portraits
+  const fetchPage = useCallback(async (pg, reset = false) => {
+    setLoading(true)
+    try {
+      const res  = await fetch(buildUrl(gender, look, pg))
+      const data = await res.json()
+      const urls = data.results.map(r => r.picture.large)
+      setPhotos(prev => reset ? urls : [...prev, ...urls])
+      setHasMore(urls.length === PAGE_SIZE)
+    } catch {
+      // silently ignore network errors — grid just stays as-is
+    }
+    setLoading(false)
+  }, [gender, look])
+
+  // reset when filters change
+  useEffect(() => {
+    setPhotos([])
+    setPage(1)
+    setHasMore(true)
+    fetchPage(1, true)
+  }, [gender, lookIdx])  // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadMore = () => {
+    const next = page + 1
+    setPage(next)
+    fetchPage(next)
   }
 
   const handleSave = async () => {
     if (!session) { navigate('/auth'); return }
     const trimmedName = username.trim()
-    if (!trimmedName) { setError('Please enter a username.'); return }
+    if (!trimmedName) { setError('Please enter a name.'); return }
+    if (!selected)    { setError('Please pick an avatar photo.'); return }
     setSaving(true)
     setError(null)
 
     const { data, error: err } = await supabase
       .from('profiles')
       .upsert({
-        id:            session.user.id,
-        username:      trimmedName,
-        avatar_config: cfg,
-        avatar_extras: extras,
-        updated_at:    new Date().toISOString(),
+        id:         session.user.id,
+        username:   trimmedName,
+        avatar_url: selected,
+        updated_at: new Date().toISOString(),
       }, { onConflict: 'id' })
       .select()
       .single()
@@ -142,14 +137,8 @@ export default function AvatarCreatorScreen() {
     navigate('/map')
   }
 
-  const hasHeadwear = extras.includes('Cap') || extras.includes('Beanie')
-
-  // Avatar preview: full body, 120px wide → height = 120 * 120/48 = 300px
-  const PREVIEW_W = 120
-  const PREVIEW_H = 300
-
   return (
-    <div className="screen" style={{ background: 'var(--bg)' }}>
+    <div className="screen" style={{ background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
 
       {/* Header */}
       <div style={{
@@ -163,34 +152,38 @@ export default function AvatarCreatorScreen() {
           aria-label="Back"
         >←</button>
         <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: '#fff' }}>
-          Create your avatar
+          Pick your avatar
         </span>
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || !selected}
           style={{
             height: 32, borderRadius: 16, padding: '0 16px',
-            background: saving ? 'rgba(127,119,221,0.4)' : 'var(--accent)',
-            color: '#fff', fontSize: 13, fontWeight: 500, cursor: saving ? 'default' : 'pointer',
+            background: saving || !selected ? 'rgba(127,119,221,0.35)' : 'var(--accent)',
+            color: '#fff', fontSize: 13, fontWeight: 500,
+            cursor: saving || !selected ? 'default' : 'pointer',
           }}
         >
           {saving ? 'Saving…' : 'Save'}
         </button>
       </div>
 
-      {/* Username input */}
-      <div style={{ padding: '10px 16px 0', flexShrink: 0 }}>
+      {/* Name + selected preview */}
+      <div style={{
+        padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
+        borderBottom: '0.5px solid var(--border)', flexShrink: 0,
+      }}>
+        <AvatarPhoto url={selected} size={52} style={{ border: selected ? '2.5px solid var(--accent)' : '2.5px solid rgba(255,255,255,0.12)' }} />
         <input
           value={username}
           onChange={e => setUsername(e.target.value)}
           placeholder="Your name (shown to nearby people)"
           maxLength={24}
           style={{
-            width: '100%', height: 40, borderRadius: 20,
+            flex: 1, height: 40, borderRadius: 20,
             background: 'rgba(255,255,255,0.07)',
             border: '0.5px solid rgba(255,255,255,0.15)',
             padding: '0 16px', fontSize: 14, color: '#fff',
-            boxSizing: 'border-box',
           }}
         />
       </div>
@@ -201,177 +194,97 @@ export default function AvatarCreatorScreen() {
         </div>
       )}
 
-      {/* Preview */}
-      <div style={{
-        height: 330, background: '#13172a',
-        borderBottom: '0.5px solid var(--border)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        position: 'relative', flexShrink: 0,
-      }}>
+      {/* Filters */}
+      <div style={{ padding: '10px 16px 8px', flexShrink: 0 }}>
+        {/* Gender */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+          {GENDER_OPTS.map((g, i) => (
+            <button key={g.value} onClick={() => setGenderIdx(i)} style={{
+              height: 28, borderRadius: 14, padding: '0 12px', fontSize: 12,
+              background: genderIdx === i ? 'var(--accent-soft)' : 'rgba(255,255,255,0.05)',
+              border: `0.5px solid ${genderIdx === i ? 'var(--accent-border)' : 'rgba(255,255,255,0.1)'}`,
+              color: genderIdx === i ? 'var(--on-dark)' : 'rgba(255,255,255,0.5)',
+              cursor: 'pointer',
+            }}>{g.label}</button>
+          ))}
+        </div>
+        {/* Look */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {LOOK_OPTS.map((l, i) => (
+            <button key={l.label} onClick={() => setLookIdx(i)} style={{
+              height: 28, borderRadius: 14, padding: '0 12px', fontSize: 12,
+              background: lookIdx === i ? 'var(--accent-soft)' : 'rgba(255,255,255,0.05)',
+              border: `0.5px solid ${lookIdx === i ? 'var(--accent-border)' : 'rgba(255,255,255,0.1)'}`,
+              color: lookIdx === i ? 'var(--on-dark)' : 'rgba(255,255,255,0.5)',
+              cursor: 'pointer',
+            }}>{l.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Photo grid */}
+      <div className="scroll-area" style={{ flex: 1, padding: '8px 12px 24px' }}>
         <div style={{
-          width: PREVIEW_W, height: PREVIEW_H,
-          borderRadius: 16,
-          border: '2.5px solid var(--accent)',
-          background: '#1e1b4b',
-          overflow: 'hidden',
-          display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 8,
         }}>
-          <AvatarSVG config={cfg} extras={extras} size={PREVIEW_W} fullBody />
+          {photos.map((url, i) => (
+            <button
+              key={url + i}
+              onClick={() => setSelected(url)}
+              style={{
+                padding: 0, border: 'none', background: 'none',
+                cursor: 'pointer', borderRadius: '50%', position: 'relative',
+              }}
+            >
+              <img
+                src={url} alt="portrait"
+                loading="lazy"
+                style={{
+                  width: '100%', aspectRatio: '1', borderRadius: '50%',
+                  objectFit: 'cover', display: 'block',
+                  border: selected === url
+                    ? '3px solid var(--accent)'
+                    : '3px solid transparent',
+                  boxSizing: 'border-box',
+                  transition: 'border-color 0.15s',
+                }}
+              />
+              {selected === url && (
+                <div style={{
+                  position: 'absolute', bottom: 2, right: 2,
+                  width: 18, height: 18, borderRadius: '50%',
+                  background: 'var(--accent)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 10, color: '#fff',
+                }}>✓</div>
+              )}
+            </button>
+          ))}
         </div>
 
-        <button onClick={randomize} style={{
-          position: 'absolute', bottom: 12, right: 14,
-          height: 28, borderRadius: 14, padding: '0 12px',
-          background: 'var(--accent-soft)', border: '0.5px solid var(--accent-border)',
-          color: 'var(--on-dark)', fontSize: 11, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 5,
-        }}>
-          ↻ Randomize
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div style={{ display: 'flex', borderBottom: '0.5px solid var(--border)', flexShrink: 0 }}>
-        {TABS.map((t, i) => (
-          <button key={t} onClick={() => setTab(i)} style={{
-            flex: 1, height: 40, background: 'none', fontSize: 11,
-            color: tab === i ? 'var(--on-dark)' : 'var(--text-muted)',
-            borderBottom: `2px solid ${tab === i ? 'var(--accent)' : 'transparent'}`,
-            fontWeight: tab === i ? 500 : 400, cursor: 'pointer',
-          }}>{t}</button>
-        ))}
-      </div>
-
-      {/* Options */}
-      <div className="scroll-area" style={{ padding: '4px 16px 24px' }}>
-
-        {/* ── Body ── */}
-        {tab === 0 && (
-          <>
-            <SectionLabel>Gender expression</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {GENDER_OPTIONS.map(g => (
-                <Chip key={g} label={g} selected={cfg.gender === g.toLowerCase()} onClick={() => set('gender', g.toLowerCase())} />
-              ))}
-            </div>
-
-            <SectionLabel>Skin tone</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {SKIN_TONES.map((c, i) => (
-                <ColorDot key={c} color={c} selected={cfg.skinIndex === i} onClick={() => set('skinIndex', i)} />
-              ))}
-            </div>
-
-            <SectionLabel>Face shape</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {FACE_SHAPE_LABELS.map((label, i) => (
-                <Chip key={label} label={label} selected={cfg.faceShapeIndex === i} onClick={() => set('faceShapeIndex', i)} />
-              ))}
-            </div>
-
-            <SectionLabel>Build</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {BUILDS.map(b => (
-                <Chip key={b} label={b} selected={cfg.build === b.toLowerCase()} onClick={() => set('build', b.toLowerCase())} />
-              ))}
-            </div>
-
-            <SectionLabel>Beard / facial hair</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {BEARD_STYLES.map(s => (
-                <Chip key={s} label={BEARD_STYLE_LABELS[s]} selected={cfg.beardStyle === s} onClick={() => set('beardStyle', s)} />
-              ))}
-            </div>
-          </>
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '20px 0', color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>
+            Loading…
+          </div>
         )}
 
-        {/* ── Hair ── */}
-        {tab === 1 && (
-          <>
-            <SectionLabel>Hair style</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {HAIR_STYLES.map(s => (
-                <Chip key={s} label={HAIR_STYLE_LABELS[s] || s} selected={cfg.hairStyle === s} onClick={() => set('hairStyle', s)} />
-              ))}
-            </div>
-
-            <SectionLabel>Hair colour</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {HAIR_COLORS.map((c, i) => (
-                <ColorDot key={c} color={c} selected={cfg.hairColorIndex === i} onClick={() => set('hairColorIndex', i)} />
-              ))}
-            </div>
-          </>
+        {!loading && hasMore && photos.length > 0 && (
+          <button
+            onClick={loadMore}
+            style={{
+              display: 'block', width: '100%', marginTop: 16,
+              height: 40, borderRadius: 20,
+              background: 'rgba(255,255,255,0.07)',
+              border: '0.5px solid rgba(255,255,255,0.15)',
+              color: 'rgba(255,255,255,0.6)', fontSize: 13,
+              cursor: 'pointer',
+            }}
+          >
+            Load more
+          </button>
         )}
-
-        {/* ── Top ── */}
-        {tab === 2 && (
-          <>
-            <SectionLabel>Top style</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {TOP_STYLES.map(s => (
-                <Chip key={s} label={TOP_STYLE_LABELS[s] || s} selected={cfg.topStyle === s} onClick={() => set('topStyle', s)} />
-              ))}
-            </div>
-
-            <SectionLabel>Top colour</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {TOP_COLORS.map((c, i) => (
-                <ColorDot key={c} color={c} selected={cfg.topColorIndex === i} onClick={() => set('topColorIndex', i)} />
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* ── Bottom ── */}
-        {tab === 3 && (
-          <>
-            <SectionLabel>Bottom style</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {BOTTOM_STYLES.map(s => (
-                <Chip key={s} label={BOTTOM_STYLE_LABELS[s] || s} selected={cfg.bottomStyle === s} onClick={() => set('bottomStyle', s)} />
-              ))}
-            </div>
-
-            <SectionLabel>Bottom colour</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {BOTTOM_COLORS.map((c, i) => (
-                <ColorDot key={c} color={c} selected={cfg.bottomColorIndex === i} onClick={() => set('bottomColorIndex', i)} />
-              ))}
-            </div>
-
-            <SectionLabel>Shoe colour</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {SHOE_COLORS.map((c, i) => (
-                <ColorDot key={c} color={c} selected={cfg.shoeColorIndex === i} onClick={() => set('shoeColorIndex', i)} />
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* ── Extras ── */}
-        {tab === 4 && (
-          <>
-            <SectionLabel>Accessories</SectionLabel>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {EXTRAS_OPTIONS.map(e => (
-                <Chip key={e} label={e} selected={extras.includes(e)} onClick={() => toggleExtra(e)} />
-              ))}
-            </div>
-
-            {hasHeadwear && (
-              <>
-                <SectionLabel>Hat colour</SectionLabel>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {ACCESSORY_COLORS.map((c, i) => (
-                    <ColorDot key={c} color={c} selected={cfg.accessoryColorIndex === i} onClick={() => set('accessoryColorIndex', i)} />
-                  ))}
-                </div>
-              </>
-            )}
-          </>
-        )}
-
       </div>
     </div>
   )
